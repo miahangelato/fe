@@ -360,22 +360,6 @@ export default function FingerprintScanPage() {
       const submitRes = await submitFingerprintAnalysis(formData);
       console.log("[DEBUG] Submit response:", submitRes);
 
-      // Validate submit response and fingerprint files before making API calls
-      if (!submitRes || !submitRes.fingerprints || !Array.isArray(submitRes.fingerprints)) {
-        console.error("Invalid submit response:", submitRes);
-        alert("Error: Invalid submit response. Please try again.");
-        return;
-      }
-
-      for (const fp of submitRes.fingerprints) {
-        const fingerName = fp.finger as FingerName; // Explicitly cast to FingerName
-        if (!fingerFiles[fingerName]) {
-          console.error(`Missing file for finger: ${fingerName}`);
-          alert(`Error: Missing file for finger: ${fingerName}. Please rescan.`);
-          return;
-        }
-      }
-
       // Check if three-tier results are already available (from scanner callback)
       const threeTierResults = getThreeTierResults();
       if (threeTierResults) {
@@ -422,18 +406,22 @@ export default function FingerprintScanPage() {
         // For consent=false: Use submit response data directly for prediction
 
         const predictionResult = await predictDiabetesFromSubmitData(submitRes);
+        console.log("🔍 DEBUG - Non-consent diabetes prediction result:", predictionResult);
+        console.log("🔍 DEBUG - predictionResult.diabetes_risk:", predictionResult?.diabetes_risk);
 
 
         const bloodGroupResult = await predictBloodGroupFromSubmitData(
           submitRes,
           fingerFiles
         );
+        console.log("🔍 DEBUG - Non-consent blood group result:", bloodGroupResult);
 
         // Navigate to results with data encoded in URL
         const participantDataWithDonation = {
           ...participant,
           willing_to_donate: willingToDonate,
         };
+        console.log("🔍 DEBUG - Participant data for navigation:", participantDataWithDonation);
 
         // Clear form data on successful submission
         clearFormData();
