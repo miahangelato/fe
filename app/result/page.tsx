@@ -71,6 +71,12 @@ interface BloodGroupResult {
   };
   participant_data?: ParticipantData;
   fingerprints?: unknown[];
+  processing_results?: Array<{
+    finger: string;
+    predicted_blood_group: string;
+    confidence: number;
+    all_probabilities: Record<string, number>;
+  }>;
 }
 
 export default function ResultPage() {
@@ -103,7 +109,13 @@ export default function ResultPage() {
           // First, try to get three-tier results
           const threeTierResults = getThreeTierResults(sessionId);
           if (threeTierResults) {
-            console.log("Loading results from three-tier architecture:", threeTierResults);
+            console.log("🔍 DEBUG - Loading results from three-tier architecture:");
+            console.log("- threeTierResults:", threeTierResults);
+            console.log("- diabetesResult:", threeTierResults.diabetesResult);
+            console.log("- bloodGroupResult:", threeTierResults.bloodGroupResult);
+            console.log("- bloodGroupResult.processing_results:", threeTierResults.bloodGroupResult?.processing_results);
+            console.log("- participantData:", threeTierResults.participantData);
+            
             setResult(threeTierResults.diabetesResult);
             setBloodGroupResult(threeTierResults.bloodGroupResult);
             setParticipantData(threeTierResults.participantData);
@@ -175,7 +187,20 @@ export default function ResultPage() {
         return current.confidence > (best?.confidence || 0) ? current : best;
       },
       null
-    );
+    ) || 
+    // Fallback for three-tier results structure
+    (bloodGroupResult?.processing_results ? 
+      bloodGroupResult.processing_results.reduce(
+        (best: { confidence: number; predicted_blood_group: string } | null, current: { confidence: number; predicted_blood_group: string }) => {
+          return current.confidence > (best?.confidence || 0) ? current : best;
+        },
+        null
+      ) : null) ||
+    // Fallback to direct properties
+    (bloodGroupResult?.predicted_blood_group ? {
+      predicted_blood_group: bloodGroupResult.predicted_blood_group,
+      confidence: bloodGroupResult.confidence || 0
+    } : null);
 
     const predictedBloodGroup = highestConfidenceResult?.predicted_blood_group;
     const bloodGroupConfidence = highestConfidenceResult?.confidence;
@@ -283,7 +308,20 @@ export default function ResultPage() {
       return current.confidence > (best?.confidence || 0) ? current : best;
     },
     null
-  );
+  ) || 
+  // Fallback for three-tier results structure
+  (bloodGroupResult?.processing_results ? 
+    bloodGroupResult.processing_results.reduce(
+      (best: { confidence: number; predicted_blood_group: string } | null, current: { confidence: number; predicted_blood_group: string }) => {
+        return current.confidence > (best?.confidence || 0) ? current : best;
+      },
+      null
+    ) : null) ||
+  // Fallback to direct properties
+  (bloodGroupResult?.predicted_blood_group ? {
+    predicted_blood_group: bloodGroupResult.predicted_blood_group,
+    confidence: bloodGroupResult.confidence || 0
+  } : null);
 
   const predictedBloodGroup = highestConfidenceResult?.predicted_blood_group;
   const bloodGroupConfidence = highestConfidenceResult?.confidence;
