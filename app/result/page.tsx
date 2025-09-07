@@ -560,6 +560,10 @@ export default function ResultPage() {
                     >
                       {result.diabetes_risk
                         ? result.diabetes_risk.toUpperCase()
+                        : (result as any).risk
+                        ? (result as any).risk.toUpperCase()
+                        : (result as any).error
+                        ? "ERROR: Model Issue"
                         : "UNKNOWN"}
                     </p>
                     {result.confidence && (
@@ -573,7 +577,7 @@ export default function ResultPage() {
             </div>
 
             {/* Participant Details */}
-            {(result.prediction_details || result.participant_data) && (
+            {(result.prediction_details || result.participant_data || participantData) && (
               <div className="bg-gray-50 dark:bg-gray-900/20 border rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-4">
                   Participant Information
@@ -585,7 +589,8 @@ export default function ResultPage() {
                     </span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {result.prediction_details?.age ||
-                        result.participant_data?.age}{" "}
+                        result.participant_data?.age ||
+                        participantData?.age}{" "}
                       years
                     </span>
                   </div>
@@ -595,7 +600,8 @@ export default function ResultPage() {
                     </span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {result.prediction_details?.gender ||
-                        result.participant_data?.gender}
+                        result.participant_data?.gender ||
+                        participantData?.gender}
                     </span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
@@ -604,7 +610,8 @@ export default function ResultPage() {
                     </span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {result.prediction_details?.height ||
-                        result.participant_data?.height}{" "}
+                        result.participant_data?.height ||
+                        participantData?.height}{" "}
                       cm
                     </span>
                   </div>
@@ -614,7 +621,8 @@ export default function ResultPage() {
                     </span>
                     <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {result.prediction_details?.weight ||
-                        result.participant_data?.weight}{" "}
+                        result.participant_data?.weight ||
+                        participantData?.weight}{" "}
                       kg
                     </span>
                   </div>
