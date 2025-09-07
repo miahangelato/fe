@@ -74,7 +74,6 @@ function DownloadContent() {
         setError(errorData.error || `Failed to download ${downloadFormat.toUpperCase()}`);
       }
     } catch (error) {
-      console.error("Download error:", error);
       setError(`Error downloading ${downloadFormat.toUpperCase()}. Please try again.`);
     } finally {
       setDownloading(false);

@@ -50,7 +50,6 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('❌ Error checking results:', error);
     return NextResponse.json(
       { 
         success: false, 

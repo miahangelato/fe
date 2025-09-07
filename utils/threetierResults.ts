@@ -33,7 +33,6 @@ export function storeThreeTierResults(results: ThreeTierResults): void {
     // Also store the current session ID for easy access
     sessionStorage.setItem('current_three_tier_session', results.sessionId);
     
-    console.log('✅ Three-tier results stored:', results.sessionId);
   } catch (error) {
     console.error('❌ Failed to store three-tier results:', error);
   }

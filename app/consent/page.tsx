@@ -37,7 +37,6 @@ export default function ConsentPage() {
       setHasConsent(consent);
       router.push("/personal-info");
     } catch (error) {
-      console.error("Consent submission error:", error);
       alert("Error submitting consent. Please try again.");
     } finally {
       setLoading(false);
