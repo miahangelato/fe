@@ -70,12 +70,12 @@ export default function ConsentPage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <FileText className="w-5 h-5 text-blue-500" />
-                  <span>What We'll Do</span>
+                  <span>What We&apos;ll Do</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-foreground">
-                  We'll analyze your fingerprint patterns and basic health
+                  We&apos;ll analyze your fingerprint patterns and basic health
                   information to provide:
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -122,7 +122,7 @@ export default function ConsentPage() {
                   </div>
                   <div>
                     <h4 className="font-medium text-foreground mb-2">
-                      We Don't:
+                      We Don&apos;t:
                     </h4>
                     <ul className="space-y-1 text-muted-foreground">
                       <li>• Store personal identifiers</li>

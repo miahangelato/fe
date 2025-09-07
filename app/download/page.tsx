@@ -1,13 +1,16 @@
 // pages/download.tsx (for Pages Router) or app/download/page.tsx (for App Router)
 "use client"; // Remove this line if using Pages Router
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router"; // Use "next/navigation" for App Router
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation"; // Use "next/navigation" for App Router
 import { Download, FileText, Clock, AlertCircle, CheckCircle } from "lucide-react";
 
-export default function DownloadPage() {
+function DownloadContent() {
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const { id, sessionId, format } = router.query; // For App Router, use useSearchParams()
+  const id = searchParams.get('id');
+  const sessionId = searchParams.get('sessionId');
+  const format = searchParams.get('format') || 'pdf';
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -205,5 +208,13 @@ export default function DownloadPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DownloadPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DownloadContent />
+    </Suspense>
   );
 }

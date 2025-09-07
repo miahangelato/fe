@@ -3,9 +3,7 @@ import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import EndButton from "../../components/Endbutton";
 import { useConsent } from "../../contexts/ConsentContext";
-import QRCodeComponent from "../../components/QRCodeComponent";
 import React from "react";
-import CryptoJS from "crypto-js";
 import { getThreeTierResults } from "@/utils/threetierResults";
 import {
   Droplets,
@@ -13,11 +11,7 @@ import {
   AlertTriangle,
   Heart,
   Hospital,
-  MapPin,
-  Clock,
-  Phone,
   CheckCircle,
-  XCircle,
   Info,
 } from "lucide-react";
 

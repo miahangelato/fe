@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Declare global type for temporary storage
 declare global {
-  var threeTierResults: Record<string, any> | undefined;
+  var threeTierResults: Record<string, unknown> | undefined;
 }
 
 export async function POST(request: NextRequest) {
