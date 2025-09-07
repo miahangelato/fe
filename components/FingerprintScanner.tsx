@@ -11,6 +11,7 @@ interface ScannerProps {
 }
 
 // Use environment variable for scanner URL, fallback to HTTPS for development
+// Updated to fix SSL protocol error - force rebuild
 const SCANNER_BASE_URL = process.env.NEXT_PUBLIC_SCANNER_BASE_URL || 'https://192.168.100.34:5000';
 const CALLBACK_BASE_URL = process.env.NEXT_PUBLIC_CALLBACK_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://fe-zeta-bay.vercel.app');
 
