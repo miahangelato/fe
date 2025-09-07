@@ -118,17 +118,32 @@ export const predictBloodGroupFromSubmitData = async (
   fingerFiles: { [key: string]: File }
 ): Promise<any> => {
 
+  // Validate that we have the required data
+  if (!submitResponseData) {
+    throw new Error("Submit response data is required for blood group prediction");
+  }
+
+  // Check if fingerprints array exists
+  if (!submitResponseData.fingerprints || !Array.isArray(submitResponseData.fingerprints)) {
+    throw new Error("No fingerprints data found in submit response. Cannot predict blood group.");
+  }
+
   const formData = new FormData();
   formData.append("json_data", JSON.stringify(submitResponseData));
 
   // Attach files, matching image_name in fingerprints
-  if (submitResponseData.fingerprints && Array.isArray(submitResponseData.fingerprints)) {
-    for (const fp of submitResponseData.fingerprints) {
-      const file = fingerFiles[fp.finger];
-      if (file) {
-        formData.append("files", file, fp.image_name); // file name must match image_name
-      }
+  let filesAttached = 0;
+  for (const fp of submitResponseData.fingerprints) {
+    const file = fingerFiles[fp.finger];
+    if (file) {
+      formData.append("files", file, fp.image_name); // file name must match image_name
+      filesAttached++;
     }
+  }
+
+  // Ensure at least one file is attached
+  if (filesAttached === 0) {
+    throw new Error("No fingerprint files available for blood group prediction");
   }
 
   const response = await fetch(`${API_BASE}identify-blood-group-from-json/`, {
