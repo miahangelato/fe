@@ -112,8 +112,10 @@ export default function ResultPage() {
             console.log("🔍 DEBUG - Loading results from three-tier architecture:");
             console.log("- threeTierResults:", threeTierResults);
             console.log("- diabetesResult:", threeTierResults.diabetesResult);
+            console.log("- diabetesResult.diabetes_risk:", threeTierResults.diabetesResult?.diabetes_risk);
             console.log("- bloodGroupResult:", threeTierResults.bloodGroupResult);
             console.log("- bloodGroupResult.processing_results:", threeTierResults.bloodGroupResult?.processing_results);
+            console.log("- bloodGroupResult.predicted_blood_group:", threeTierResults.bloodGroupResult?.predicted_blood_group);
             console.log("- participantData:", threeTierResults.participantData);
             
             setResult(threeTierResults.diabetesResult);
@@ -325,6 +327,16 @@ export default function ResultPage() {
 
   const predictedBloodGroup = highestConfidenceResult?.predicted_blood_group;
   const bloodGroupConfidence = highestConfidenceResult?.confidence;
+
+  // Debug logging for results display
+  console.log("🔍 RESULT DISPLAY DEBUG:");
+  console.log("- result:", result);
+  console.log("- result.diabetes_risk:", result?.diabetes_risk);
+  console.log("- bloodGroupResult:", bloodGroupResult);
+  console.log("- highestConfidenceResult:", highestConfidenceResult);
+  console.log("- predictedBloodGroup:", predictedBloodGroup);
+  console.log("- bloodGroupConfidence:", bloodGroupConfidence);
+  console.log("- participantData:", participantData);
 
   // Get the appropriate download URL
   const downloadUrl = generatePDFDownloadUrl() || generateDownloadUrl();
