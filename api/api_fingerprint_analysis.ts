@@ -14,14 +14,9 @@ if (process.env.NODE_ENV === 'production' && !API_BASE) {
 }
 
 // Debug logging
-console.log('🔧 API Configuration:');
-console.log('  NEXT_PUBLIC_API_BASE_URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
-console.log('  Final API_BASE:', API_BASE);
-console.log('  Environment:', process.env.NODE_ENV);
 
 // Submit participant data and fingerprints (multipart/form-data)
 export async function submitFingerprintAnalysis(formData: FormData) {
-  console.log("API - Raw FormData:", Array.from(formData.entries()));
 
   const response = await axios.post(`${API_BASE}submit/`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -90,7 +85,6 @@ export const getParticipantData = async (participantId: string): Promise<Partici
 };
 
 export const predictDiabetesRisk = async (participantId: string, consent: boolean = true, formData: FormData): Promise<any> => {
-  console.log(`API - Predicting diabetes risk for participant ${participantId}, consent: ${consent}`);
   
   // Add participant_id and consent to formData
   formData.append("participant_id", participantId);
@@ -106,7 +100,6 @@ export const predictDiabetesRisk = async (participantId: string, consent: boolea
 
 // New function for consent=false cases - predicts directly from submit response data
 export const predictDiabetesFromSubmitData = async (submitResponseData: any): Promise<any> => {
-  console.log('API - Predicting diabetes from submit data:', submitResponseData);
   
   const response = await axios.post(`${API_BASE}predict-diabetes-from-json/`, submitResponseData, {
     headers: { "Content-Type": "application/json" },
@@ -124,10 +117,9 @@ export const predictBloodGroupFromSubmitData = async (
   submitResponseData: any,
   fingerFiles: { [key: string]: File }
 ): Promise<any> => {
-  console.log('API - Predicting blood group from submit data:', submitResponseData);
 
   const formData = new FormData();
-  formData.append("json", JSON.stringify(submitResponseData));
+  formData.append("json_data", JSON.stringify(submitResponseData));
 
   // Attach files, matching image_name in fingerprints
   if (submitResponseData.fingerprints && Array.isArray(submitResponseData.fingerprints)) {
@@ -147,12 +139,10 @@ export const predictBloodGroupFromSubmitData = async (
     throw new Error(`Blood group prediction failed: ${response.status}`);
   }
   const parsedResponse = await response.json();
-  console.log('[DEBUG] Parsed backend response for blood group prediction:', parsedResponse);
   return parsedResponse;
 };
 
 export async function predictBloodGroup(participantId: number, consent: boolean) {
-  console.log(`[DEBUG] Predicting blood group for participant ${participantId}, consent: ${consent}`);
 
   // Send participant_id as query parameter, not form data
   const url = `${API_BASE}identify-blood-group-from-participant/?participant_id=${participantId}`;
@@ -160,18 +150,13 @@ export async function predictBloodGroup(participantId: number, consent: boolean)
   const formData = new FormData();
   formData.append("consent", consent ? "true" : "false");
 
-  console.log('[DEBUG] Built form data:', Array.from(formData.entries()));
-  console.log('[DEBUG] Request URL:', url);
-
   try {
     const response = await axios.post(url, formData, {
       headers: { "Content-Type": "multipart/form-data" },
       withCredentials: true,
     });
-    console.log('[DEBUG] API response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('[ERROR] API request failed:', error);
     throw error;
   }
 }
@@ -190,7 +175,6 @@ export const generatePDF = async (data: any): Promise<string> => {
       throw new Error(response.data.error || 'Failed to generate PDF');
     }
   } catch (error) {
-    console.error('Error generating PDF:', error);
     throw error;
   }
 };

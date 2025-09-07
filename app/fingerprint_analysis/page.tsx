@@ -360,6 +360,22 @@ export default function FingerprintScanPage() {
       const submitRes = await submitFingerprintAnalysis(formData);
       console.log("[DEBUG] Submit response:", submitRes);
 
+      // Validate submit response and fingerprint files before making API calls
+      if (!submitRes || !submitRes.fingerprints || !Array.isArray(submitRes.fingerprints)) {
+        console.error("Invalid submit response:", submitRes);
+        alert("Error: Invalid submit response. Please try again.");
+        return;
+      }
+
+      for (const fp of submitRes.fingerprints) {
+        const fingerName = fp.finger as FingerName; // Explicitly cast to FingerName
+        if (!fingerFiles[fingerName]) {
+          console.error(`Missing file for finger: ${fingerName}`);
+          alert(`Error: Missing file for finger: ${fingerName}. Please rescan.`);
+          return;
+        }
+      }
+
       // Check if three-tier results are already available (from scanner callback)
       const threeTierResults = getThreeTierResults();
       if (threeTierResults) {
