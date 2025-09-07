@@ -332,11 +332,16 @@ export default function ResultPage() {
   console.log("🔍 RESULT DISPLAY DEBUG:");
   console.log("- result:", result);
   console.log("- result.diabetes_risk:", result?.diabetes_risk);
+  console.log("- result keys:", result ? Object.keys(result) : "no result");
+  console.log("- result full object:", JSON.stringify(result, null, 2));
   console.log("- bloodGroupResult:", bloodGroupResult);
+  console.log("- bloodGroupResult keys:", bloodGroupResult ? Object.keys(bloodGroupResult) : "no bloodGroupResult");
   console.log("- highestConfidenceResult:", highestConfidenceResult);
   console.log("- predictedBloodGroup:", predictedBloodGroup);
   console.log("- bloodGroupConfidence:", bloodGroupConfidence);
   console.log("- participantData:", participantData);
+  console.log("- participantData keys:", participantData ? Object.keys(participantData) : "no participantData");
+  console.log("- participantData full object:", JSON.stringify(participantData, null, 2));
 
   // Get the appropriate download URL
   const downloadUrl = generatePDFDownloadUrl() || generateDownloadUrl();
