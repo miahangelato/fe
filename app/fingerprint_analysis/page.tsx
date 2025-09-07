@@ -14,6 +14,7 @@ import { ParticipantData } from "../../types/participant";
 import { FingerName, FINGER_ORDER } from "../../types/fingerprint";
 import FingerprintScanner from "../../components/FingerprintScanner";
 import { useRouter } from "next/navigation";
+import { getThreeTierResults } from "@/utils/threetierResults";
 import {
   Card,
   CardContent,
@@ -85,11 +86,9 @@ function SingleFingerprintCard({
     
     // Log scan data if provided (contains backend processing results)
     if (scanData) {
-      console.log('✅ Scan completed with data:', scanData);
       
       // Log backend processing results
       if (scanData.backend_processing) {
-        console.log('🎯 Backend processing results:', scanData.backend_processing);
       }
     }
     
@@ -313,7 +312,6 @@ export default function FingerprintScanPage() {
     if (savedFormData && savedFormData.completed) {
       setParticipant(savedFormData.participant);
       setWillingToDonate(savedFormData.willingToDonate);
-      console.log("Form data loaded from storage");
     } else {
       // If no completed form data, redirect to personal info page
       router.push("/personal-info");
@@ -357,12 +355,23 @@ export default function FingerprintScanPage() {
         willingToDonate ?? false // Handle null case
       );
 
-      console.log("[DEBUG] Built form data:", Array.from(formData.entries()));
-      console.log("[DEBUG] willingToDonate value:", willingToDonate);
 
       // Step 1: Submit participant and fingerprints
       const submitRes = await submitFingerprintAnalysis(formData);
       console.log("[DEBUG] Submit response:", submitRes);
+
+      // Check if three-tier results are already available (from scanner callback)
+      const threeTierResults = getThreeTierResults();
+      if (threeTierResults) {
+        console.log("[DEBUG] Three-tier results found, skipping additional API calls:", threeTierResults);
+        
+        // Clear form data and navigate directly to results
+        clearFormData();
+        
+        // Navigate to results using the session ID
+        router.push(`/result?sid=${threeTierResults.sessionId}`);
+        return;
+      }
 
       if (hasConsent && submitRes.saved && submitRes.participant_id) {
         // For consent=true: Data is saved, use participant_id for prediction
@@ -371,10 +380,7 @@ export default function FingerprintScanPage() {
           true,
           formData
         );
-        console.log(
-          "[DEBUG] Prediction result (consent true):",
-          predictionResult
-        );
+
 
         const bloodGroupResult = await predictBloodGroup(
           submitRes.participant_id.toString(),
@@ -386,10 +392,7 @@ export default function FingerprintScanPage() {
           ...participant,
           willing_to_donate: willingToDonate,
         };
-        console.log(
-          "[DEBUG] Navigating with participant data:",
-          participantDataWithDonation
-        );
+
 
         // Clear form data on successful submission
         clearFormData();
@@ -401,14 +404,9 @@ export default function FingerprintScanPage() {
         );
       } else {
         // For consent=false: Use submit response data directly for prediction
-        console.log(
-          "[DEBUG] Using submit response for prediction (consent false)"
-        );
+
         const predictionResult = await predictDiabetesFromSubmitData(submitRes);
-        console.log(
-          "[DEBUG] Prediction result (consent false):",
-          predictionResult
-        );
+
 
         const bloodGroupResult = await predictBloodGroupFromSubmitData(
           submitRes,
@@ -431,7 +429,6 @@ export default function FingerprintScanPage() {
         );
       }
     } catch (error) {
-      console.error("Submission error:", error);
       alert("Error submitting form. Please try again.");
     } finally {
       setSubmitting(false);
