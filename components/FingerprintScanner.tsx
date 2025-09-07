@@ -84,6 +84,12 @@ export default function FingerprintScanner({ onScanComplete, currentFinger, part
     try {
       console.log('🔍 Scanner Base URL:', SCANNER_BASE_URL);
       console.log('🔍 Environment Variable:', process.env.NEXT_PUBLIC_SCANNER_BASE_URL);
+      console.log('🔍 Build timestamp:', Date.now());
+      console.log('🔍 All env vars:', {
+        SCANNER: process.env.NEXT_PUBLIC_SCANNER_BASE_URL,
+        API: process.env.NEXT_PUBLIC_API_BASE_URL,
+        CALLBACK: process.env.NEXT_PUBLIC_CALLBACK_BASE_URL
+      });
       
       // Prepare request payload with participant data
       const requestPayload: Record<string, unknown> = {

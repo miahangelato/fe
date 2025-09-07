@@ -9,9 +9,23 @@ const nextConfig = {
     // Temporarily ignore TypeScript errors during builds for deployment
     ignoreBuildErrors: true,
   },
-  // Force cache invalidation - remove after SSL fix
+  // Force cache invalidation - aggressive rebuild for HTTPS fix
   generateBuildId: async () => {
-    return 'ssl-fix-' + Date.now();
+    return 'https-fix-' + Date.now();
+  },
+  // Additional cache headers to prevent browser caching
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
+    ];
   },
 }
 
