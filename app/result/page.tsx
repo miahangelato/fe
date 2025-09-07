@@ -21,6 +21,16 @@ import {
   Info,
 } from "lucide-react";
 
+interface ParticipantData {
+  participant_id?: number;
+  age?: number;
+  gender?: string;
+  height?: number;
+  weight?: number;
+  blood_type?: string;
+  willing_to_donate?: boolean;
+}
+
 interface DiabetesResult {
   success?: boolean;
   diabetes_risk?: string;
@@ -37,8 +47,8 @@ interface DiabetesResult {
     blood_type: string;
     fingerprint_count: number;
   };
-  participant_data?: any;
-  fingerprints?: any[];
+  participant_data?: ParticipantData;
+  fingerprints?: unknown[];
 }
 
 interface BloodGroupResult {
@@ -65,8 +75,8 @@ interface BloodGroupResult {
     blood_type: string;
     fingerprint_count: number;
   };
-  participant_data?: any;
-  fingerprints?: any[];
+  participant_data?: ParticipantData;
+  fingerprints?: unknown[];
 }
 
 export default function ResultPage() {
@@ -78,7 +88,7 @@ export default function ResultPage() {
   const [result, setResult] = useState<DiabetesResult | null>(null);
   const [bloodGroupResult, setBloodGroupResult] =
     useState<BloodGroupResult | null>(null);
-  const [participantData, setParticipantData] = useState<any>(null);
+  const [participantData, setParticipantData] = useState<ParticipantData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -162,27 +172,12 @@ export default function ResultPage() {
     }
   }, [diabetesResult, contextBloodGroupResult, contextParticipantData]);
 
-  const getRiskColor = (risk: string) => {
-    switch (risk?.toLowerCase()) {
-      case "diabetic":
-      case "high":
-      case "at risk":
-        return "text-red-600 bg-red-100";
-      case "healthy":
-      case "low":
-      case "not at risk":
-        return "text-green-600 bg-green-100";
-      default:
-        return "text-yellow-600 bg-yellow-100";
-    }
-  };
-
   // Generate download URL for QR code
   const generateDownloadUrl = () => {
     if (!participantData || !result || !bloodGroupResult) return "";
 
     const highestConfidenceResult = bloodGroupResult?.results?.reduce(
-      (best: any, current: any) => {
+      (best: { confidence: number; predicted_blood_group: string } | null, current: { confidence: number; predicted_blood_group: string }) => {
         return current.confidence > (best?.confidence || 0) ? current : best;
       },
       null
@@ -290,7 +285,7 @@ export default function ResultPage() {
   }
 
   const highestConfidenceResult = bloodGroupResult?.results?.reduce(
-    (best: any, current: any) => {
+    (best: { confidence: number; predicted_blood_group: string } | null, current: { confidence: number; predicted_blood_group: string }) => {
       return current.confidence > (best?.confidence || 0) ? current : best;
     },
     null
