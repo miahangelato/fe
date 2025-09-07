@@ -3,9 +3,21 @@ import { ParticipantData } from "../types/participant";
 import { FingerName, FINGER_ORDER } from "../types/fingerprint";
 import { frontendEncryption } from "../utils/encryption";
 
-// Use environment variable for API base URL, fallback to localhost for development
-// const API_BASE = "http://127.0.0.1:8000/api/core/";
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api/core/";
+// Use environment variable for API base URL, with production override
+let API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+// Force production URL if we're in production and environment variable isn't set
+if (process.env.NODE_ENV === 'production' && !API_BASE) {
+  API_BASE = "https://be2-production.up.railway.app/api/core/";
+} else if (!API_BASE) {
+  API_BASE = "http://127.0.0.1:8000/api/core/";
+}
+
+// Debug logging
+console.log('🔧 API Configuration:');
+console.log('  NEXT_PUBLIC_API_BASE_URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
+console.log('  Final API_BASE:', API_BASE);
+console.log('  Environment:', process.env.NODE_ENV);
 
 // Submit participant data and fingerprints (multipart/form-data)
 export async function submitFingerprintAnalysis(formData: FormData) {
