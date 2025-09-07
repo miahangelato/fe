@@ -11,8 +11,8 @@ interface ScannerProps {
 }
 
 // Use environment variable for scanner URL, fallback to HTTPS Ngrok for immediate fix
-// TEMPORARY: Hardcoded Ngrok URL until Vercel env vars are updated
-const SCANNER_BASE_URL = process.env.NEXT_PUBLIC_SCANNER_BASE_URL || 'https://3a558f784835.ngrok-free.app';
+// EMERGENCY FIX: Force HTTPS Ngrok URL until Vercel env vars are properly updated
+const SCANNER_BASE_URL = 'https://3a558f784835.ngrok-free.app'; // Force correct URL
 const CALLBACK_BASE_URL = process.env.NEXT_PUBLIC_CALLBACK_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://fe-zeta-bay.vercel.app');
 
 export default function FingerprintScanner({ onScanComplete, currentFinger, participantData }: ScannerProps) {
