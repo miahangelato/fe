@@ -103,7 +103,8 @@ export default function FingerprintScanner({ onScanComplete, currentFinger, part
         {
           headers: { 
             'Content-Type': 'application/json',
-            'X-Frontend-Callback-URL': `${CALLBACK_BASE_URL}/api/process-callback`
+            'X-Frontend-Callback-URL': `${CALLBACK_BASE_URL}/api/process-callback`,
+            'ngrok-skip-browser-warning': 'true'
           }
         }
       );
