@@ -10,8 +10,8 @@ interface ScannerProps {
   participantData?: unknown; // Add participant data prop
 }
 
-// Use environment variable for scanner URL, fallback to localhost for development
-const SCANNER_BASE_URL = process.env.NEXT_PUBLIC_SCANNER_BASE_URL || 'http://192.168.100.34:5000';
+// Use environment variable for scanner URL, fallback to HTTPS for development
+const SCANNER_BASE_URL = process.env.NEXT_PUBLIC_SCANNER_BASE_URL || 'https://192.168.100.34:5000';
 const CALLBACK_BASE_URL = process.env.NEXT_PUBLIC_CALLBACK_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://fe-zeta-bay.vercel.app');
 
 export default function FingerprintScanner({ onScanComplete, currentFinger, participantData }: ScannerProps) {
