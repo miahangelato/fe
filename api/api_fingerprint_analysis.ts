@@ -4,9 +4,8 @@ import { FingerName, FINGER_ORDER } from "../types/fingerprint";
 import { frontendEncryption } from "../utils/encryption";
 
 // Use environment variable for API base URL, fallback to localhost for development
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
-
-//  const API_BASE = 'http://127.0.0.1:8000/api/core/';
+// const API_BASE = "http://127.0.0.1:8000/api/core/";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api/core/";
 
 // Submit participant data and fingerprints (multipart/form-data)
 export async function submitFingerprintAnalysis(formData: FormData) {

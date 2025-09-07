@@ -38,10 +38,12 @@ function SingleFingerprintCard({
   fingerFiles,
   onScanComplete,
   onFileChange,
+  participantData,
 }: {
   fingerFiles: { [key in FingerName]?: File };
   onScanComplete: (fingerName: FingerName, file: File) => void;
   onFileChange: (finger: FingerName, file: File | null) => void;
+  participantData?: any;
 }) {
   const [currentFingerIndex, setCurrentFingerIndex] = useState(0);
   const currentFinger = FINGER_ORDER[currentFingerIndex];
@@ -76,9 +78,21 @@ function SingleFingerprintCard({
   // Auto-advance to next finger after scanning (optional)
   const handleScanCompleteWithAdvance = (
     fingerName: FingerName,
-    file: File
+    file: File,
+    scanData?: any
   ) => {
     onScanComplete(fingerName, file);
+    
+    // Log scan data if provided (contains backend processing results)
+    if (scanData) {
+      console.log('✅ Scan completed with data:', scanData);
+      
+      // Log backend processing results
+      if (scanData.backend_processing) {
+        console.log('🎯 Backend processing results:', scanData.backend_processing);
+      }
+    }
+    
     // Auto-advance to next unscanned finger
     setTimeout(() => {
       for (let i = currentFingerIndex + 1; i < totalFingers; i++) {
@@ -129,6 +143,7 @@ function SingleFingerprintCard({
                 <FingerprintScanner
                   onScanComplete={handleScanCompleteWithAdvance}
                   currentFinger={currentFinger}
+                  participantData={participantData}
                 />
               </>
             ) : (
@@ -339,7 +354,7 @@ export default function FingerprintScanPage() {
         participant,
         fingerFiles,
         consentString,
-        willingToDonate
+        willingToDonate ?? false // Handle null case
       );
 
       console.log("[DEBUG] Built form data:", Array.from(formData.entries()));
@@ -499,6 +514,7 @@ export default function FingerprintScanPage() {
             fingerFiles={fingerFiles}
             onScanComplete={handleScanComplete}
             onFileChange={handleFileChange}
+            participantData={participant}
           />
 
           {/* Buttons */}

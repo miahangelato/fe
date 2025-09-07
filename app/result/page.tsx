@@ -6,6 +6,7 @@ import { useConsent } from "../../contexts/ConsentContext";
 import QRCodeComponent from "../../components/QRCodeComponent";
 import React from "react";
 import CryptoJS from "crypto-js";
+import { getThreeTierResults } from "@/utils/threetierResults";
 import {
   Droplets,
   TrendingUp,
@@ -95,7 +96,19 @@ export default function ResultPage() {
 
       if (sessionId) {
         try {
-          // Try the new enhanced storage system first
+          // First, try to get three-tier results
+          const threeTierResults = getThreeTierResults(sessionId);
+          if (threeTierResults) {
+            console.log("Loading results from three-tier architecture:", threeTierResults);
+            setResult(threeTierResults.diabetesResult);
+            setBloodGroupResult(threeTierResults.bloodGroupResult);
+            setParticipantData(threeTierResults.participantData);
+            setLoading(false);
+            window.history.replaceState({}, "", "/result");
+            return;
+          }
+
+          // Fallback to the enhanced storage system
           let encodedData = sessionStorage.getItem(sessionId);
 
           // Fallback to the fixed key storage
