@@ -652,13 +652,13 @@ export default function ResultPage() {
                     <div className="flex items-center space-x-3 mb-4">
                       <Heart className="w-6 h-6 text-green-600 flex-shrink-0" />
                       <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
-                        You're Healthy!
+                        You&apos;re Healthy!
                       </h3>
                     </div>
                     {participantData?.willing_to_donate === true ? (
                       <div>
                         <p className="text-green-700 dark:text-green-300 mb-6 text-sm leading-relaxed">
-                          Great news! You're healthy and willing to donate
+                          Great news! You&apos;re healthy and willing to donate
                           blood. Help save lives by donating blood to those in
                           need.
                         </p>
@@ -693,7 +693,7 @@ export default function ResultPage() {
                       </div>
                     ) : (
                       <p className="text-green-700 dark:text-green-300 text-sm leading-relaxed">
-                        You are healthy! Please indicate if you're willing to
+                        You are healthy! Please indicate if you&apos;re willing to
                         donate blood.
                       </p>
                     )}

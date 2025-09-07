@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FingerName } from '../types/fingerprint';
-import { storeThreeTierResults } from '../utils/threetierResults';
+// import { storeThreeTierResults } from '../utils/threetierResults'; // Will be used when polling detects results
 import { useRouter } from 'next/navigation';
 
 interface ScannerProps {
-  onScanComplete: (fingerName: FingerName, imageFile: File, scanData?: any) => void;
+  onScanComplete: (fingerName: FingerName, imageFile: File, scanData?: unknown) => void;
   currentFinger: FingerName;
-  participantData?: any; // Add participant data prop
+  participantData?: unknown; // Add participant data prop
 }
 
 // Use environment variable for scanner URL, fallback to localhost for development
-const SCANNER_BASE_URL = 'http://127.0.0.1:5000';
+const SCANNER_BASE_URL = process.env.NEXT_PUBLIC_SCANNER_BASE_URL || 'http://127.0.0.1:5000';
+const CALLBACK_BASE_URL = process.env.NEXT_PUBLIC_CALLBACK_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
 
 export default function FingerprintScanner({ onScanComplete, currentFinger, participantData }: ScannerProps) {
   const [scanning, setScanning] = useState(false);
@@ -81,7 +82,7 @@ export default function FingerprintScanner({ onScanComplete, currentFinger, part
 
     try {
       // Prepare request payload with participant data
-      const requestPayload: any = {
+      const requestPayload: Record<string, unknown> = {
         finger_name: currentFinger
       };
 
@@ -102,7 +103,7 @@ export default function FingerprintScanner({ onScanComplete, currentFinger, part
         {
           headers: { 
             'Content-Type': 'application/json',
-            'X-Frontend-Callback-URL': `${process.env.NEXT_PUBLIC_FRONTEND_URL || window.location.origin}/api/process-callback`
+            'X-Frontend-Callback-URL': `${CALLBACK_BASE_URL}/api/process-callback`
           }
         }
       );
