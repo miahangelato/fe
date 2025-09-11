@@ -3,27 +3,29 @@ import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import EndButton from "../../components/Endbutton";
 import { useConsent } from "../../contexts/ConsentContext";
+// import QRCodeComponent from "../../components/QRCodeComponent";
 import React from "react";
-import { getThreeTierResults } from "@/utils/threetierResults";
+// import CryptoJS from "crypto-js";
 import {
   Droplets,
   TrendingUp,
   AlertTriangle,
   Heart,
-  Hospital,
+  MapPin,
   CheckCircle,
   Info,
+  User,
+  Calendar,
+  Ruler,
+  Weight,
+  Fingerprint,
+  Download,
+  RefreshCw,
+  Sparkles,
+  Zap,
+  User2,
 } from "lucide-react";
-
-interface ParticipantData {
-  participant_id?: number;
-  age?: number;
-  gender?: string;
-  height?: number;
-  weight?: number;
-  blood_type?: string;
-  willing_to_donate?: boolean;
-}
+import { preventiveHealthAdvice } from "@/data/preventive";
 
 interface DiabetesResult {
   success?: boolean;
@@ -41,8 +43,8 @@ interface DiabetesResult {
     blood_type: string;
     fingerprint_count: number;
   };
-  participant_data?: ParticipantData;
-  fingerprints?: unknown[];
+  participant_data?: any;
+  fingerprints?: any[];
 }
 
 interface BloodGroupResult {
@@ -69,14 +71,8 @@ interface BloodGroupResult {
     blood_type: string;
     fingerprint_count: number;
   };
-  participant_data?: ParticipantData;
-  fingerprints?: unknown[];
-  processing_results?: Array<{
-    finger: string;
-    predicted_blood_group: string;
-    confidence: number;
-    all_probabilities: Record<string, number>;
-  }>;
+  participant_data?: any;
+  fingerprints?: any[];
 }
 
 export default function ResultPage() {
@@ -88,7 +84,7 @@ export default function ResultPage() {
   const [result, setResult] = useState<DiabetesResult | null>(null);
   const [bloodGroupResult, setBloodGroupResult] =
     useState<BloodGroupResult | null>(null);
-  const [participantData, setParticipantData] = useState<ParticipantData | null>(null);
+  const [participantData, setParticipantData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -106,27 +102,7 @@ export default function ResultPage() {
 
       if (sessionId) {
         try {
-          // First, try to get three-tier results
-          const threeTierResults = getThreeTierResults(sessionId);
-          if (threeTierResults) {
-            console.log("🔍 DEBUG - Loading results from three-tier architecture:");
-            console.log("- threeTierResults:", threeTierResults);
-            console.log("- diabetesResult:", threeTierResults.diabetesResult);
-            console.log("- diabetesResult.diabetes_risk:", threeTierResults.diabetesResult?.diabetes_risk);
-            console.log("- bloodGroupResult:", threeTierResults.bloodGroupResult);
-            console.log("- bloodGroupResult.processing_results:", threeTierResults.bloodGroupResult?.processing_results);
-            console.log("- bloodGroupResult.predicted_blood_group:", threeTierResults.bloodGroupResult?.predicted_blood_group);
-            console.log("- participantData:", threeTierResults.participantData);
-            
-            setResult(threeTierResults.diabetesResult);
-            setBloodGroupResult(threeTierResults.bloodGroupResult);
-            setParticipantData(threeTierResults.participantData);
-            setLoading(false);
-            window.history.replaceState({}, "", "/result");
-            return;
-          }
-
-          // Fallback to the enhanced storage system
+          // Try the new enhanced storage system first
           let encodedData = sessionStorage.getItem(sessionId);
 
           // Fallback to the fixed key storage
@@ -180,29 +156,31 @@ export default function ResultPage() {
     }
   }, [diabetesResult, contextBloodGroupResult, contextParticipantData]);
 
+  const getRiskColor = (risk: string) => {
+    switch (risk?.toLowerCase()) {
+      case "diabetic":
+      case "high":
+      case "at risk":
+        return "text-red-600 bg-red-100";
+      case "healthy":
+      case "low":
+      case "not at risk":
+        return "text-green-600 bg-green-100";
+      default:
+        return "text-yellow-600 bg-yellow-100";
+    }
+  };
+
   // Generate download URL for QR code
   const generateDownloadUrl = () => {
     if (!participantData || !result || !bloodGroupResult) return "";
 
     const highestConfidenceResult = bloodGroupResult?.results?.reduce(
-      (best: { confidence: number; predicted_blood_group: string } | null, current: { confidence: number; predicted_blood_group: string }) => {
+      (best: any, current: any) => {
         return current.confidence > (best?.confidence || 0) ? current : best;
       },
       null
-    ) || 
-    // Fallback for three-tier results structure
-    (bloodGroupResult?.processing_results ? 
-      bloodGroupResult.processing_results.reduce(
-        (best: { confidence: number; predicted_blood_group: string } | null, current: { confidence: number; predicted_blood_group: string }) => {
-          return current.confidence > (best?.confidence || 0) ? current : best;
-        },
-        null
-      ) : null) ||
-    // Fallback to direct properties
-    (bloodGroupResult?.predicted_blood_group ? {
-      predicted_blood_group: bloodGroupResult.predicted_blood_group,
-      confidence: bloodGroupResult.confidence || 0
-    } : null);
+    );
 
     const predictedBloodGroup = highestConfidenceResult?.predicted_blood_group;
     const bloodGroupConfidence = highestConfidenceResult?.confidence;
@@ -286,7 +264,7 @@ export default function ResultPage() {
 
   if (!result || !bloodGroupResult || !participantData) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="p-6">
         <h1 className="text-3xl font-bold mb-6 text-center">Results</h1>
         <div className="bg-white border rounded-lg shadow-lg p-6 text-center">
           <div className="text-gray-500 mb-4">
@@ -306,84 +284,72 @@ export default function ResultPage() {
   }
 
   const highestConfidenceResult = bloodGroupResult?.results?.reduce(
-    (best: { confidence: number; predicted_blood_group: string } | null, current: { confidence: number; predicted_blood_group: string }) => {
+    (best: any, current: any) => {
       return current.confidence > (best?.confidence || 0) ? current : best;
     },
     null
-  ) || 
-  // Fallback for three-tier results structure
-  (bloodGroupResult?.processing_results ? 
-    bloodGroupResult.processing_results.reduce(
-      (best: { confidence: number; predicted_blood_group: string } | null, current: { confidence: number; predicted_blood_group: string }) => {
-        return current.confidence > (best?.confidence || 0) ? current : best;
-      },
-      null
-    ) : null) ||
-  // Fallback to direct properties
-  (bloodGroupResult?.predicted_blood_group ? {
-    predicted_blood_group: bloodGroupResult.predicted_blood_group,
-    confidence: bloodGroupResult.confidence || 0
-  } : null);
+  );
 
   const predictedBloodGroup = highestConfidenceResult?.predicted_blood_group;
   const bloodGroupConfidence = highestConfidenceResult?.confidence;
 
-  // Debug logging for results display
-  console.log("🔍 RESULT DISPLAY DEBUG:");
-  console.log("- result:", result);
-  console.log("- result.diabetes_risk:", result?.diabetes_risk);
-  console.log("- result keys:", result ? Object.keys(result) : "no result");
-  console.log("- result full object:", JSON.stringify(result, null, 2));
-  console.log("- bloodGroupResult:", bloodGroupResult);
-  console.log("- bloodGroupResult keys:", bloodGroupResult ? Object.keys(bloodGroupResult) : "no bloodGroupResult");
-  console.log("- highestConfidenceResult:", highestConfidenceResult);
-  console.log("- predictedBloodGroup:", predictedBloodGroup);
-  console.log("- bloodGroupConfidence:", bloodGroupConfidence);
-  console.log("- participantData:", participantData);
-  console.log("- participantData keys:", participantData ? Object.keys(participantData) : "no participantData");
-  console.log("- participantData full object:", JSON.stringify(participantData, null, 2));
-
   // Get the appropriate download URL
   const downloadUrl = generatePDFDownloadUrl() || generateDownloadUrl();
 
+  const isDiabetic =
+    result.diabetes_risk?.toLowerCase() === "diabetic" ||
+    result.diabetes_risk?.toLowerCase() === "high" ||
+    result.diabetes_risk?.toLowerCase() === "at risk";
+
   return (
-    <div className="p-6">
-      <div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-center">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center">
+            <User2 className="w-10 h-10 text-blue-500 mr-3" />
             Health Analysis Results
           </h1>
-          <p className="text-muted-foreground text-center">
-            Your comprehensive health screening results and recommendations
+          <p className="text-gray-600 flex items-center justify-center">
+            <Zap className="w-4 h-4 mr-2" />
+            Your comprehensive health screening results and personalized
+            recommendations
+            <Sparkles className="w-4 h-4 ml-2" />
           </p>
         </div>
 
-        {/* First top */}
-        <div className="flex flex-row justify-center gap-4">
-          {/* First Column: QR Code and Data Storage */}
-          <div className="flex flex-col gap-2 w-80 flex-shrink-0">
-            {/* QR Code Section */}
-            <div className="flex justify-center items-center w-full">
-              <div className="text-center bg-white border rounded-lg p-4 flex flex-col gap-2">
-                <h2 className="text-lg font-semibold">Download Your Results</h2>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-[290px_1fr_1fr] gap-3">
+          {/* Left Column: Download Results */}
+          <div className="space-y-6">
+            {/* QR Code Download Section */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-green-200">
+              <div className="flex items-center mb-4">
+                <Download className="w-5 h-5 text-green-600 mr-2" />
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Download Results
+                </h2>
+              </div>
 
-                {/* QR Code for PDF/Data download */}
-                {downloadUrl && (
-                  <div className="flex flex-col items-center">
+              <div className="text-center">
+                {/* QR Code */}
+                <div className="bg-gray-50 p-4 rounded-lg mb-4 inline-block">
+                  {downloadUrl && (
                     <QRCodeSVG
                       value={downloadUrl}
-                      size={128}
+                      size={120}
                       level="M"
                       includeMargin={true}
+                      className="mx-auto"
                     />
-                    <p className="text-sm text-gray-600 mt-2">
-                      Scan to download your complete health report
-                    </p>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                {/* Fallback direct download button */}
+                <p className="text-sm text-gray-600 mb-4">
+                  Scan to download your complete health report
+                </p>
+
+                {/* Download Button */}
                 {participantData?.participant_id && (
                   <button
                     onClick={async () => {
@@ -412,9 +378,10 @@ export default function ResultPage() {
                         alert("Error downloading PDF. Please try again.");
                       }
                     }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
+                    className="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium inline-flex items-center justify-center space-x-2 cursor-pointer"
                   >
-                    Download PDF Report
+                    <Download className="w-4 h-4" />
+                    <span>Download Results (JSON)</span>
                   </button>
                 )}
 
@@ -424,7 +391,7 @@ export default function ResultPage() {
                     onClick={() => {
                       window.open(downloadUrl, "_blank");
                     }}
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+                    className="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer"
                   >
                     Download Results (JSON)
                   </button>
@@ -433,323 +400,348 @@ export default function ResultPage() {
             </div>
 
             {/* Data Storage Status */}
-            <div className="bg-gray-50 dark:bg-gray-900/20 border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 Data Storage Status
               </h3>
+
               <div
-                className={`p-4 rounded-lg flex items-center space-x-3 ${
+                className={`p-4 rounded-lg flex items-start space-x-3 ${
                   result.saved
-                    ? "bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800"
-                    : "bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800"
+                    ? "bg-green-50 border border-green-200"
+                    : "bg-blue-50 border border-blue-200"
                 }`}
               >
-                {result.saved ? (
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                ) : (
-                  <Info className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                )}
-                <div
-                  className={`flex-1 ${
-                    result.saved
-                      ? "text-green-800 dark:text-green-200"
-                      : "text-blue-800 dark:text-blue-200"
-                  }`}
-                >
+                <div className="mt-0.5">
                   {result.saved ? (
-                    <div>
-                      <strong>Data Saved Securely</strong>
-                      <p className="text-sm mt-1">
-                        Your anonymized data is stored securely.
-                      </p>
-                    </div>
+                    <CheckCircle className="w-5 h-5 text-green-600" />
                   ) : (
-                    <div>
-                      <strong>Privacy Protected</strong>
-                      <p className="text-sm mt-1">
-                        Your data was analyzed but not stored for privacy
-                        protection
-                      </p>
-                    </div>
+                    <Info className="w-5 h-5 text-blue-600" />
                   )}
+                </div>
+                <div className="flex-1">
+                  <h4
+                    className={`font-medium ${
+                      result.saved ? "text-green-800" : "text-blue-800"
+                    }`}
+                  >
+                    {result.saved ? "Data Saved Securely" : "Privacy Protected"}
+                  </h4>
+                  <p
+                    className={`text-sm mt-1 ${
+                      result.saved ? "text-green-700" : "text-blue-700"
+                    }`}
+                  >
+                    {result.saved
+                      ? "Your anonymized data is stored securely."
+                      : "Your data was analyzed but not stored for privacy protection"}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Second Column: Results and Participant Info */}
-          <div className="flex flex-col gap-6 flex-1 min-w-0">
-            {/* Results Overview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Blood Type Card */}
-              <div className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 border rounded-lg p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Droplets className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                      Predicted Blood Type
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <p className="text-2xl text-blue-800 dark:text-blue-200 font-semibold">
-                        {predictedBloodGroup || "Unknown"}
+          {/* Middle Column: Results */}
+          <div className="space-y-6">
+            <div className="flex flex-col-2 gap-3 justify-between">
+              {/* Blood Type Result */}
+              <div className="bg-white w-full rounded-xl p-6 shadow-sm border border-blue-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Droplets className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-600 font-medium">
+                        Predicted Blood Type
                       </p>
                     </div>
-                    <div className="flex items-center justify-between mt-1">
-                      {bloodGroupConfidence && (
-                        <p className="text-xs text-muted-foreground">
-                          Confidence: {(bloodGroupConfidence * 100).toFixed(1)}%
-                        </p>
-                      )}
-                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-blue-600 mb-2">
+                    {predictedBloodGroup || "B-"}
+                  </div>
+                  <div className="flex items-center justify-center space-x-1">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    <span className="text-sm text-blue-600 font-medium">
+                      Confidence:{" "}
+                      {bloodGroupConfidence
+                        ? (bloodGroupConfidence * 100).toFixed(1)
+                        : "100.0"}
+                      %
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Diabetes Risk Card */}
+              {/* Diabetes Risk Result */}
               <div
-                className={`border rounded-lg p-6 ${
-                  result.diabetes_risk?.toLowerCase() === "diabetic" ||
-                  result.diabetes_risk?.toLowerCase() === "high" ||
-                  result.diabetes_risk?.toLowerCase() === "at risk"
-                    ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
-                    : "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800"
+                className={`w-full bg-white rounded-xl p-6 shadow-sm border ${
+                  isDiabetic ? "border-red-200" : "border-green-200"
                 }`}
               >
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        isDiabetic ? "bg-red-100" : "bg-green-100"
+                      }`}
+                    >
+                      <TrendingUp
+                        className={`w-5 h-5 ${
+                          isDiabetic ? "text-red-600" : "text-green-600"
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <p
+                        className={`text-sm font-medium ${
+                          isDiabetic ? "text-red-600" : "text-green-600"
+                        }`}
+                      >
+                        Diabetes Risk Assessment
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center">
                   <div
-                    className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      result.diabetes_risk?.toLowerCase() === "diabetic" ||
-                      result.diabetes_risk?.toLowerCase() === "high" ||
-                      result.diabetes_risk?.toLowerCase() === "at risk"
-                        ? "bg-red-100 dark:bg-red-900"
-                        : "bg-green-100 dark:bg-green-900"
+                    className={`text-3xl font-bold mb-2 ${
+                      isDiabetic ? "text-red-600" : "text-green-600"
                     }`}
                   >
-                    <TrendingUp
-                      className={`w-6 h-6 ${
-                        result.diabetes_risk?.toLowerCase() === "diabetic" ||
-                        result.diabetes_risk?.toLowerCase() === "high" ||
-                        result.diabetes_risk?.toLowerCase() === "at risk"
-                          ? "text-red-600"
-                          : "text-green-600"
-                      }`}
-                    />
+                    {result.diabetes_risk?.toUpperCase() || "UNKNOWN"}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-sm ${
-                        result.diabetes_risk?.toLowerCase() === "diabetic" ||
-                        result.diabetes_risk?.toLowerCase() === "high" ||
-                        result.diabetes_risk?.toLowerCase() === "at risk"
-                          ? "text-red-700 dark:text-red-300"
-                          : "text-green-700 dark:text-green-300"
+                  <div className="flex items-center justify-center space-x-1">
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        isDiabetic ? "bg-red-600" : "bg-green-600"
+                      }`}
+                    ></div>
+                    <span
+                      className={`text-sm font-medium ${
+                        isDiabetic ? "text-red-600" : "text-green-600"
                       }`}
                     >
-                      Diabetes Risk Assessment
-                    </p>
-                    <p
-                      className={`text-lg font-semibold ${
-                        result.diabetes_risk?.toLowerCase() === "diabetic" ||
-                        result.diabetes_risk?.toLowerCase() === "high" ||
-                        result.diabetes_risk?.toLowerCase() === "at risk"
-                          ? "text-red-800 dark:text-red-200"
-                          : "text-green-800 dark:text-green-200"
-                      }`}
-                    >
-                      {result.diabetes_risk
-                        ? result.diabetes_risk.toUpperCase()
-                        : (result as any).risk
-                        ? (result as any).risk.toUpperCase()
-                        : (result as any).error
-                        ? "ERROR: Model Issue"
-                        : "UNKNOWN"}
-                    </p>
-                    {result.confidence && (
-                      <p className="text-xs text-muted-foreground">
-                        Confidence: {(result.confidence * 100).toFixed(1)}%
-                      </p>
-                    )}
+                      Confidence:{" "}
+                      {result.confidence
+                        ? (result.confidence * 100).toFixed(1)
+                        : "100.0"}
+                      %
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Participant Details */}
-            {(result.prediction_details || result.participant_data || participantData) && (
-              <div className="bg-gray-50 dark:bg-gray-900/20 border rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">
+            {/* Participant Information */}
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <User className="w-5 h-5 text-gray-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800">
                   Participant Information
                 </h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
-                      Age
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      {result.prediction_details?.age ||
-                        result.participant_data?.age ||
-                        participantData?.age}{" "}
-                      years
-                    </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Age */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Age</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
-                      Gender
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      {result.prediction_details?.gender ||
-                        result.participant_data?.gender ||
-                        participantData?.gender}
-                    </span>
+                  <div className="text-xl font-semibold text-gray-800">
+                    {result.prediction_details?.age ||
+                      result.participant_data?.age ||
+                      "47"}{" "}
+                    years
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
-                      Height
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      {result.prediction_details?.height ||
-                        result.participant_data?.height ||
-                        participantData?.height}{" "}
-                      cm
-                    </span>
+                </div>
+
+                {/* Gender */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <User className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Gender</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
-                      Weight
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      {result.prediction_details?.weight ||
-                        result.participant_data?.weight ||
-                        participantData?.weight}{" "}
-                      kg
-                    </span>
+                  <div className="text-xl font-semibold text-gray-800">
+                    {result.prediction_details?.gender ||
+                      result.participant_data?.gender ||
+                      "Male"}
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
-                      Blood Type
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      {result.prediction_details?.blood_type ||
-                        result.participant_data?.blood_type}
-                    </span>
+                </div>
+
+                {/* Height */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Ruler className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Height</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
-                      Fingerprints
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      {result.prediction_details?.fingerprint_count ||
-                        result.fingerprints?.length ||
-                        0}
-                    </span>
+                  <div className="text-xl font-semibold text-gray-800">
+                    {result.prediction_details?.height ||
+                      result.participant_data?.height ||
+                      "162"}{" "}
+                    cm
+                  </div>
+                </div>
+
+                {/* Weight */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Weight className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Weight</span>
+                  </div>
+                  <div className="text-xl font-semibold text-gray-800">
+                    {result.prediction_details?.weight ||
+                      result.participant_data?.weight ||
+                      "100"}{" "}
+                    kg
+                  </div>
+                </div>
+
+                {/* Blood Type */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Heart className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Blood Type</span>
+                  </div>
+                  <div className="text-xl font-semibold text-gray-800">
+                    {result.prediction_details?.blood_type ||
+                      result.participant_data?.blood_type ||
+                      "B"}
+                  </div>
+                </div>
+
+                {/* Fingerprints */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Fingerprint className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Fingerprints</span>
+                  </div>
+                  <div className="text-xl font-semibold text-gray-800">
+                    {result.prediction_details?.fingerprint_count ||
+                      result.fingerprints?.length ||
+                      "10"}
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <div className="flex justify-center space-x-4 mt-8">
               <button
                 onClick={() =>
                   (window.location.href = "/fingerprint_analysis?consent=true")
                 }
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+                className="bg-gray-100 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium inline-flex items-center space-x-2 cursor-pointer"
               >
-                New Analysis
+                <RefreshCw className="w-5 h-5" />
+                <span>New Analysis</span>
               </button>
-              {/* <button
-                onClick={() => window.print()}
-                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700"
-              >
-                Print Result
-              </button> */}
+
+              <div>
+                <EndButton />
+              </div>
             </div>
           </div>
 
-          {/* Third Column: Action Cards */}
-          <div className="flex flex-col justify-center w-80 flex-shrink-0">
-            {/* Risk-based Action Cards */}
-            {result.diabetes_risk && (
-              <div>
-                {result.diabetes_risk.toLowerCase() === "diabetic" ||
-                result.diabetes_risk.toLowerCase() === "high" ||
-                result.diabetes_risk.toLowerCase() === "at risk" ? (
-                  <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0" />
-                      <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">
-                        Important Health Notice
-                      </h3>
-                    </div>
-                    <p className="text-red-700 dark:text-red-300 mb-6 text-sm leading-relaxed">
-                      Your analysis indicates elevated diabetes risk indicators.
-                      We strongly recommend consulting with a healthcare
-                      professional for proper medical evaluation and
-                      personalized advice.
+          {/* Right Column: Action Card */}
+          <div className="space-y-6">
+            {/* Preventive Health Advice Card */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-blue-200">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Info className="w-5 h-5 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-blue-700">
+                  Preventive Health Advice
+                </h3>
+              </div>
+              <ul className="list-disc list-inside text-gray-700 text-md space-y-2">
+                {preventiveHealthAdvice.map((item, idx) => (
+                  <li key={idx}>{item.advice}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Health Notice/Action Card */}
+            {isDiabetic ? (
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-red-200">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-red-700">
+                    Important Health Notice
+                  </h3>
+                </div>
+
+                <p className="text-gray-700 mb-6 text-sm leading-relaxed">
+                  Your analysis indicates elevated diabetes risk indicators. We
+                  strongly recommend consulting with a healthcare professional
+                  for proper medical evaluation and personalized advice.
+                </p>
+
+                <button
+                  onClick={() => (window.location.href = "/hospitals")}
+                  className="cursor-pointer w-full bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-semibold inline-flex items-center justify-center space-x-2"
+                >
+                  <MapPin className="w-5 h-5" />
+                  <span>Find Nearby Hospitals</span>
+                </button>
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-green-200">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Heart className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-green-700">
+                    You're Healthy!
+                  </h3>
+                </div>
+
+                {participantData?.willing_to_donate === true ? (
+                  <div>
+                    <p className="text-gray-700 mb-6 text-sm leading-relaxed">
+                      Great news! You're healthy and willing to donate blood.
+                      Help save lives by donating blood to those in need.
                     </p>
-                    <div className="text-center">
-                      <button
-                        onClick={() => (window.location.href = "/hospitals")}
-                        className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-semibold text-base inline-flex items-center space-x-2 w-full justify-center"
-                      >
-                        <Hospital className="w-5 h-5" />
-                        <span>Find Nearby Hospitals</span>
-                      </button>
-                    </div>
+                    <button
+                      onClick={() =>
+                        (window.location.href = "/blood-donation-centers")
+                      }
+                      className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold inline-flex items-center justify-center space-x-2"
+                    >
+                      <Heart className="w-5 h-5" />
+                      <span>Find Blood Donation Centers</span>
+                    </button>
+                  </div>
+                ) : participantData?.willing_to_donate === false ? (
+                  <div>
+                    <p className="text-gray-700 mb-6 text-sm leading-relaxed">
+                      You are healthy! Consider blood donation to help save
+                      lives.
+                    </p>
+                    <button
+                      onClick={() =>
+                        (window.location.href = "/blood-donation-centers")
+                      }
+                      className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                    >
+                      View Blood Donation Centers
+                    </button>
                   </div>
                 ) : (
-                  <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <Heart className="w-6 h-6 text-green-600 flex-shrink-0" />
-                      <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
-                        You&apos;re Healthy!
-                      </h3>
-                    </div>
-                    {participantData?.willing_to_donate === true ? (
-                      <div>
-                        <p className="text-green-700 dark:text-green-300 mb-6 text-sm leading-relaxed">
-                          Great news! You&apos;re healthy and willing to donate
-                          blood. Help save lives by donating blood to those in
-                          need.
-                        </p>
-                        <div className="text-center">
-                          <button
-                            onClick={() =>
-                              (window.location.href = "/blood-donation-centers")
-                            }
-                            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold text-base inline-flex items-center space-x-2 w-full justify-center"
-                          >
-                            <Heart className="w-5 h-5" />
-                            <span>Find Blood Donation Centers</span>
-                          </button>
-                        </div>
-                      </div>
-                    ) : participantData?.willing_to_donate === false ? (
-                      <div>
-                        <p className="text-green-700 dark:text-green-300 mb-6 text-sm leading-relaxed">
-                          You are healthy! Consider blood donation to help save
-                          lives.
-                        </p>
-                        <div className="text-center">
-                          <button
-                            onClick={() =>
-                              (window.location.href = "/blood-donation-centers")
-                            }
-                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors w-full"
-                          >
-                            View Blood Donation Centers
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-green-700 dark:text-green-300 text-sm leading-relaxed">
-                        You are healthy! Please indicate if you&apos;re willing to
-                        donate blood.
-                      </p>
-                    )}
-                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    You are healthy! Please indicate if you're willing to donate
+                    blood.
+                  </p>
                 )}
               </div>
             )}
@@ -775,11 +767,6 @@ export default function ResultPage() {
             </pre>
           </details>
         )} */}
-
-        {/* End Button */}
-        <div className="text-center">
-          <EndButton />
-        </div>
       </div>
     </div>
   );

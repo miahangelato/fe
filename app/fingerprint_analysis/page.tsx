@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useFingerprintAnalysis } from "../../hooks/useFingerPrintAnalysis";
+// import { useFingerprintAnalysis } from "../../hooks/useFingerPrintAnalysis";
 import {
   buildFingerprintFormData,
   predictBloodGroupFromSubmitData,
@@ -14,22 +14,13 @@ import { ParticipantData } from "../../types/participant";
 import { FingerName, FINGER_ORDER } from "../../types/fingerprint";
 import FingerprintScanner from "../../components/FingerprintScanner";
 import { useRouter } from "next/navigation";
-import { getThreeTierResults } from "@/utils/threetierResults";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Fingerprint,
-  Target,
-  ArrowLeft,
   ChevronRight,
   ChevronLeft,
   RotateCcw,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HandGuide } from "@/components/HandGuide";
@@ -39,12 +30,10 @@ function SingleFingerprintCard({
   fingerFiles,
   onScanComplete,
   onFileChange,
-  participantData,
 }: {
   fingerFiles: { [key in FingerName]?: File };
   onScanComplete: (fingerName: FingerName, file: File) => void;
   onFileChange: (finger: FingerName, file: File | null) => void;
-  participantData?: any;
 }) {
   const [currentFingerIndex, setCurrentFingerIndex] = useState(0);
   const currentFinger = FINGER_ORDER[currentFingerIndex];
@@ -60,7 +49,7 @@ function SingleFingerprintCard({
   const totalFingers = FINGER_ORDER.length;
 
   const handleNext = () => {
-    if (!isScanned) return; // block if current not scanned
+    if (!isScanned) return;
     if (currentFingerIndex < totalFingers - 1) {
       setCurrentFingerIndex(currentFingerIndex + 1);
     }
@@ -76,23 +65,11 @@ function SingleFingerprintCard({
     setCurrentFingerIndex(index);
   };
 
-  // Auto-advance to next finger after scanning (optional)
   const handleScanCompleteWithAdvance = (
     fingerName: FingerName,
-    file: File,
-    scanData?: any
+    file: File
   ) => {
     onScanComplete(fingerName, file);
-    
-    // Log scan data if provided (contains backend processing results)
-    if (scanData) {
-      
-      // Log backend processing results
-      if (scanData.backend_processing) {
-      }
-    }
-    
-    // Auto-advance to next unscanned finger
     setTimeout(() => {
       for (let i = currentFingerIndex + 1; i < totalFingers; i++) {
         if (!fingerFiles[FINGER_ORDER[i]]) {
@@ -104,192 +81,201 @@ function SingleFingerprintCard({
   };
 
   return (
-    <Card className="mx-auto shadow-lg p-4">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Target
-              className={`w-5 h-5 ${
-                isScanned ? "text-green-500" : "text-blue-500"
-              }`}
-            />
-            {currentFingerIndex + 1}.{" "}
+    <div className="grid grid-cols-3 gap-4">
+      {/* Left - Scan Area */}
+      <Card className="col-span-2 p-4 shadow-sm border rounded-2xl">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-3xl font-bold justify-center flex items-center mb-2">
+            <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm mr-2">
+              {currentFingerIndex + 1} of {totalFingers}
+            </span>
             {handRaw.charAt(0).toUpperCase() + handRaw.slice(1)}{" "}
             {fingerRaw.charAt(0).toUpperCase() + fingerRaw.slice(1)}
           </CardTitle>
-          <div className="text-sm text-gray-600">
-            {currentFingerIndex + 1} of {totalFingers}
+          <div className="text-lg text-gray-500">
+            Progress {Object.keys(fingerFiles).length}/{totalFingers}
           </div>
-        </div>
-        <CardDescription className="flex items-center justify-between">
-          <span>
-            {isScanned ? "✅ Fingerprint captured" : "⏳ Place finger and scan"}
-          </span>
-          <div className="text-sm font-medium text-blue-600">
-            {Object.keys(fingerFiles).length}/{totalFingers} completed
-          </div>
-        </CardDescription>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="space-y-2">
-        {/* Main Content Area */}
-        <div className="grid grid-cols-2 gap-4 items-center">
-          {/* Left Side - Scanner or Hand Guide */}
-          <div className="text-center">
-            {!isScanned ? (
-              <>
-                <HandGuide hand={hand} highlightFinger={highlight} />
-                <FingerprintScanner
-                  onScanComplete={handleScanCompleteWithAdvance}
-                  currentFinger={currentFinger}
-                  participantData={participantData}
-                />
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="text-green-600 font-medium">Scan Complete!</div>
+        <CardContent className="flex flex-col items-center space-y-6">
+          <div className="flex flex-row items-center gap-2">
+            <div className="flex flex-col items-center space-y-6">
+              <div className="w-64 h-64 flex items-center justify-center bg-gray-50 rounded-2xl border">
                 <HandGuide hand={hand} highlightFinger={highlight} />
               </div>
-            )}
-          </div>
 
-          {/* Right Side - Scanned Image or Placeholder */}
-          <div className="text-center space-y-4">
-            {isScanned ? (
-              <div className="flex flex-col items-center space-y-2">
-                <div className="text-lg font-medium text-gray-700">
-                  Captured Fingerprint
-                </div>
+              <FingerprintScanner
+                onScanComplete={handleScanCompleteWithAdvance}
+                currentFinger={currentFinger}
+              />
+            </div>
+
+            {isScanned && (
+              <div className="flex flex-col items-center">
                 <img
                   src={URL.createObjectURL(fingerFiles[currentFinger]!)}
                   alt={currentFinger}
-                  className="w-48 h-48 object-contain border-2 border-green-500 rounded-lg mx-auto bg-white shadow-md"
+                  className="w-40 h-40 object-contain border-2 border-blue-400 rounded-lg shadow"
                 />
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => onFileChange(currentFinger, null)}
-                  className="flex items-center gap-2"
+                  className="mt-3 flex items-center gap-2 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                   Rescan
                 </Button>
               </div>
-            ) : (
-              // <div className="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg mx-auto flex items-center justify-center bg-gray-50">
-              //   <div className="text-center text-gray-500">
-              //     <Fingerprint className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              //     <div className="text-sm">
-              //       Scanned fingerprint will appear here
-              //     </div>
-              //   </div>
-              // </div>
-
-              <div className="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg mx-auto flex flex-col items-center justify-center bg-gray-50 p-2">
-                <Fingerprint className="w-12 h-12 mb-2 opacity-50 text-gray-400" />
-                <div className="text-sm text-gray-500 mb-2">
-                  Upload fingerprint file
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="text-xs"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      onFileChange(currentFinger, file);
-                    }
-                  }}
-                />
-              </div>
             )}
           </div>
-        </div>
 
-        {/* Navigation Controls */}
-        <div className="space-y-4">
-          {/* Finger Navigation Buttons */}
-          <div className="flex items-center justify-between">
+          {/* Navigation */}
+          <div className="flex items-center gap-2">
             <Button
-              variant="outline"
+              type="button"
+              variant="default"
+              size="lg"
               onClick={handlePrevious}
               disabled={currentFingerIndex === 0}
-              className="flex items-center gap-2"
+              className="rounded-full cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
-              Previous
             </Button>
 
-            <div className="text-center">
-              <div className="text-sm text-gray-600 mb-2">Jump to finger:</div>
-              <div className="flex gap-1 flex-wrap justify-center">
-                {FINGER_ORDER.map((finger, index) => {
-                  const isCompleted = !!fingerFiles[finger];
-                  const isCurrent = index === currentFingerIndex;
-
-                  // 🚫 Only allow clicking if:
-                  // - Going backwards, OR
-                  // - That finger itself is already scanned
-                  const canNavigate =
-                    index <= currentFingerIndex || isCompleted;
-
-                  return (
-                    <button
-                      key={finger}
-                      onClick={() => canNavigate && handleGoToFinger(index)}
-                      disabled={!canNavigate}
-                      className={`w-8 h-8 text-xs rounded-full border-2 font-medium transition-all
-                          ${
-                            isCurrent
-                              ? "bg-blue-500 text-white border-blue-500"
-                              : isCompleted
-                              ? "bg-green-100 text-green-700 border-green-500"
-                              : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                          }`}
-                    >
-                      {index + 1}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="flex gap-2">
+              {FINGER_ORDER.map((finger, index) => {
+                const isCompleted = !!fingerFiles[finger];
+                const isCurrent = index === currentFingerIndex;
+                return (
+                  <button
+                    type="button"
+                    key={finger}
+                    onClick={() => handleGoToFinger(index)}
+                    disabled={!isCompleted && index > currentFingerIndex}
+                    className={`w-9 h-9 text-xs rounded-md font-medium border transition-all
+                    ${
+                      isCurrent
+                        ? "bg-blue-500 text-white border-blue-500"
+                        : isCompleted
+                        ? "bg-blue-100 text-blue-600 border-blue-300"
+                        : "bg-gray-100 text-gray-400 border-gray-200"
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                );
+              })}
             </div>
 
             <Button
-              variant="outline"
+              type="button"
+              variant="default"
+              size="lg"
               onClick={handleNext}
               disabled={!isScanned || currentFingerIndex === totalFingers - 1}
-              className="flex items-center gap-2"
+              className="rounded-full cursor-pointer"
             >
-              Next
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Overall Progress</span>
-              <span>
-                {Object.keys(fingerFiles).length}/{totalFingers} fingers scanned
-              </span>
+      {/* Right - Upload + Progress */}
+      <div className="flex flex-col gap-4">
+        <Card className="p-4 shadow-sm border rounded-2xl">
+          <CardTitle className="text-xl font-bold mb-3">
+            Upload Alternative
+          </CardTitle>
+          <label className="w-full h-32 flex flex-col items-center justify-center border-2 border-dashed border-blue-300 rounded-xl cursor-pointer hover:bg-blue-50 transition hover:scale-95">
+            <Upload className="w-6 h-6 text-blue-400 mb-2" />
+            <span className="text-sm text-gray-600">Upload File</span>
+            <input
+              id="hidden-scan-input"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  onFileChange(currentFinger, file);
+                }
+              }}
+            />
+          </label>
+        </Card>
+
+        <Card className="p-4 shadow-sm border rounded-2xl">
+          <CardTitle className="text-2xl font-bold mb-2">
+            Scan Progress
+          </CardTitle>
+          <div className="text-lg text-gray-600 mb-2">
+            Overall Progress {Object.keys(fingerFiles).length}/{totalFingers}
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div
+              className="bg-blue-500 h-2 rounded-full transition-all"
+              style={{
+                width: `${
+                  (Object.keys(fingerFiles).length / totalFingers) * 100
+                }%`,
+              }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            {/* Left Hand */}
+            <div>
+              {FINGER_ORDER.filter((f) => f.startsWith("left")).map(
+                (finger) => (
+                  <div
+                    key={finger}
+                    className={`flex items-center text-lg ${
+                      fingerFiles[finger] ? "text-blue-600" : "text-gray-400"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      checked={finger === currentFinger}
+                      readOnly
+                      className="mr-2 accent-blue-500"
+                    />
+                    {finger.replace("_", " ").toUpperCase()}
+                  </div>
+                )
+              )}
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div
-                className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-in-out"
-                style={{
-                  width: `${
-                    (Object.keys(fingerFiles).length / totalFingers) * 100
-                  }%`,
-                }}
-              ></div>
+
+            {/* Right Hand */}
+            <div>
+              {FINGER_ORDER.filter((f) => f.startsWith("right")).map(
+                (finger) => (
+                  <div
+                    key={finger}
+                    className={`flex items-center text-lg ${
+                      fingerFiles[finger] ? "text-blue-600" : "text-gray-400"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      checked={finger === currentFinger}
+                      readOnly
+                      className="mr-2 accent-blue-500"
+                    />
+                    {finger.replace("_", " ").toUpperCase()}
+                  </div>
+                )
+              )}
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </Card>
+      </div>
+    </div>
   );
 }
 
+// OG FUNCTION
 export default function FingerprintScanPage() {
   const {
     hasConsent,
@@ -306,19 +292,28 @@ export default function FingerprintScanPage() {
   }>({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Load form data on component mount
   useEffect(() => {
     const savedFormData = retrieveFormData();
     if (savedFormData && savedFormData.completed) {
       setParticipant(savedFormData.participant);
       setWillingToDonate(savedFormData.willingToDonate);
     } else {
-      // If no completed form data, redirect to personal info page
       router.push("/personal-info");
     }
   }, [retrieveFormData, router]);
 
   const handleFileChange = (finger: FingerName, file: File | null) => {
+    // Prevent duplicate file upload for different fingers
+    if (
+      file &&
+      Object.entries(fingerFiles).some(
+        ([key, f]) =>
+          key !== finger && f && f.name === file.name && f.size === file.size
+      )
+    ) {
+      alert("This image has already been uploaded for another finger.");
+      return;
+    }
     setFingerFiles((prev) => ({ ...prev, [finger]: file || undefined }));
   };
 
@@ -328,17 +323,12 @@ export default function FingerprintScanPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (submitting) return;
-
     if (!participant) {
-      alert(
-        "Participant data not found. Please fill out the personal information form first."
-      );
+      alert("Participant data not found.");
       router.push("/personal-info");
       return;
     }
-
     if (Object.keys(fingerFiles).length === 0) {
       alert("Please scan at least one fingerprint.");
       return;
@@ -346,209 +336,169 @@ export default function FingerprintScanPage() {
 
     try {
       setSubmitting(true);
-
       const consentString = hasConsent ? "true" : "false";
       const formData = buildFingerprintFormData(
         participant,
         fingerFiles,
         consentString,
-        willingToDonate ?? false // Handle null case
+        willingToDonate === null ? undefined : willingToDonate
       );
 
-
-      // Step 1: Submit participant and fingerprints
       const submitRes = await submitFingerprintAnalysis(formData);
-      console.log("[DEBUG] Submit response:", submitRes);
-
-      // Check if three-tier results are already available (from scanner callback)
-      const threeTierResults = getThreeTierResults();
-      if (threeTierResults) {
-        console.log("[DEBUG] Three-tier results found, skipping additional API calls:", threeTierResults);
-        
-        // Clear form data and navigate directly to results
-        clearFormData();
-        
-        // Navigate to results using the session ID
-        router.push(`/result?sid=${threeTierResults.sessionId}`);
-        return;
-      }
-
       if (hasConsent && submitRes.saved && submitRes.participant_id) {
-        // For consent=true: Data is saved, use participant_id for prediction
         const predictionResult = await predictDiabetesRisk(
           submitRes.participant_id.toString(),
           true,
           formData
         );
-
-
         const bloodGroupResult = await predictBloodGroup(
           submitRes.participant_id.toString(),
           true
         );
-
-        // Navigate to results with data encoded in URL
-        const participantDataWithDonation = {
+        clearFormData();
+        navigateToResultsWithData(predictionResult, bloodGroupResult, {
           ...participant,
           willing_to_donate: willingToDonate,
-        };
-
-
-        // Clear form data on successful submission
-        clearFormData();
-
-        navigateToResultsWithData(
-          predictionResult,
-          bloodGroupResult,
-          participantDataWithDonation
-        );
+        });
       } else {
-        // For consent=false: Use submit response data directly for prediction
-
         const predictionResult = await predictDiabetesFromSubmitData(submitRes);
-        console.log("🔍 DEBUG - Non-consent diabetes prediction result:", predictionResult);
-        console.log("🔍 DEBUG - predictionResult.diabetes_risk:", predictionResult?.diabetes_risk);
-
-
         const bloodGroupResult = await predictBloodGroupFromSubmitData(
           submitRes,
           fingerFiles
         );
-        console.log("🔍 DEBUG - Non-consent blood group result:", bloodGroupResult);
-
-        // Navigate to results with data encoded in URL
-        const participantDataWithDonation = {
+        clearFormData();
+        navigateToResultsWithData(predictionResult, bloodGroupResult, {
           ...participant,
           willing_to_donate: willingToDonate,
-        };
-        console.log("🔍 DEBUG - Participant data for navigation:", participantDataWithDonation);
-
-        // Clear form data on successful submission
-        clearFormData();
-
-        navigateToResultsWithData(
-          predictionResult,
-          bloodGroupResult,
-          participantDataWithDonation
-        );
+        });
       }
     } catch (error) {
+      console.error("Submission error:", error);
       alert("Error submitting form. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleBack = () => {
-    router.back();
-  };
+  const handleBack = () => router.back();
+  const handleClearAll = () => setFingerFiles({});
 
-  const handleClearAll = () => {
-    // ✅ Only reset fingerprints, keep participant info
-    setFingerFiles({});
-  };
-
-  // Show loading state while checking for form data
   if (!participant) {
     return (
-      <div className="bg-background overflow-auto flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>Loading form data...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <p>Loading form data...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-background overflow-auto p-4">
-      <div className="flex flex-col">
-        {/* Header with Back Button */}
-        <div className="flex flex-col items-center mb-4">
-          <h1 className="flex flex-row gap-2 text-3xl font-bold text-foreground mb-2">
-            <Fingerprint className="w-10 h-10 text-blue-500" />
-            Scan Fingerprints
-          </h1>
-          <p className="text-foreground text-center">
-            Please scan your fingerprints using the scanner below. Make sure your fingers are clean.
-            When you're ready, submit your scans for analysis.
+    <div className="min-h-screen p-8">
+      {/* Background Video */}
+      <video
+        src="/fprint-anal/bg.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover -z-1 opacity-10 rotate-180"
+      />
+
+      {/* Header */}
+      <div className="flex items-center mb-6 justify-center">
+        <Fingerprint className="w-14 h-14 text-blue-500 mr-2" />
+        <div>
+          <h1 className="text-5xl font-bold">Biometric Analysis</h1>
+          <p className="text-xl text-gray-900">
+            Secure fingerprint scanning system
           </p>
         </div>
+      </div>
 
-        <Separator className="mb-2" />
+      {/* Participant Info */}
+      <Card className="mb-6 border rounded-2xl shadow-sm">
+        <CardContent className="grid grid-cols-6 gap-4 p-4 text-lg">
+          <div>
+            <strong>AGE</strong>
+            <br />
+            {participant.age}
+          </div>
+          <div>
+            <strong>GENDER</strong>
+            <br />
+            {participant.gender}
+          </div>
+          <div>
+            <strong>HEIGHT</strong>
+            <br />
+            {participant.height} cm
+          </div>
+          <div>
+            <strong>WEIGHT</strong>
+            <br />
+            {participant.weight} kg
+          </div>
+          <div>
+            <strong>BLOOD</strong>
+            <br />
+            {participant.blood_type}
+          </div>
+          <div>
+            <strong>DONOR</strong>
+            <br />
+            {willingToDonate ? "Yes" : "No"}
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Summary of Personal Info */}
-        <Card className="mb-2 bg-blue-50 p-2">
-          <CardHeader>
-            <CardTitle className="text-lg">
-              Personal Information Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-6 gap-4 text-sm">
-              <div>
-                <strong>Age:</strong> {participant.age}
-              </div>
-              <div>
-                <strong>Gender:</strong> {participant.gender}
-              </div>
-              <div>
-                <strong>Height:</strong> {participant.height} cm
-              </div>
-              <div>
-                <strong>Weight:</strong> {participant.weight} kg
-              </div>
-              <div>
-                <strong>Blood Type:</strong> {participant.blood_type}
-              </div>
-              <div>
-                <strong>Willing to Donate:</strong>{" "}
-                {willingToDonate ? "Yes" : "No"}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <form onSubmit={handleSubmit}>
+        <SingleFingerprintCard
+          fingerFiles={fingerFiles}
+          onScanComplete={handleScanComplete}
+          onFileChange={handleFileChange}
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {/* Single Fingerprint Scan Card */}
-          <SingleFingerprintCard
-            fingerFiles={fingerFiles}
-            onScanComplete={handleScanComplete}
-            onFileChange={handleFileChange}
-            participantData={participant}
-          />
-
-          {/* Buttons */}
-          <div className="flex gap-4 mt-6">
-            <Button onClick={handleBack}>
-              <span className="text-sm leading-none">Back</span>
-            </Button>
-
+        {/* Bottom Buttons */}
+        <div className="flex justify-between mt-5">
+          <Button
+            type="button"
+            onClick={handleBack}
+            variant="outline"
+            className="px-8 text-3xl py-6 font-bold bg-black text-white cursor-pointer"
+          >
+            Back
+          </Button>
+          <div className="flex gap-4">
             <button
               type="submit"
-              disabled={submitting || Object.keys(fingerFiles).length === 0}
-              className={`px-4 py-2 rounded flex-1 text-white ${
-                submitting || Object.keys(fingerFiles).length === 0
+              disabled={
+                submitting ||
+                Object.keys(fingerFiles).length !== FINGER_ORDER.length
+              }
+              className={`px-6 py-2 rounded-lg text-white text-xl font-bold ${
+                submitting ||
+                Object.keys(fingerFiles).length !== FINGER_ORDER.length
                   ? "bg-blue-300 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  : "bg-blue-500 hover:bg-blue-600 cursor-pointer"
               }`}
             >
               {submitting
-                ? "Processing Analysis..."
-                : `Submit Analysis (${Object.keys(fingerFiles).length} scans)`}
+                ? "Processing..."
+                : `Submit Analysis (${Object.keys(fingerFiles).length}/${
+                    FINGER_ORDER.length
+                  })`}
             </button>
 
             <button
               type="button"
               onClick={handleClearAll}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded"
               disabled={submitting}
+              className="bg-red-500 hover:bg-red-600 text-white font-semibold text-xl px-6 py-2 rounded-lg cursor-pointer"
             >
-              Clear All Fingerprint Scans
+              Clear All
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }

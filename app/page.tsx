@@ -1,93 +1,185 @@
 "use client";
+import React, { useState, useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { Fingerprint } from "lucide-react";
+import { LoaderCircle, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { HyperText } from "@/components/magicui/hyper-text";
 
-const cardContent = [
+const features = [
   {
-    text: "Consent",
+    title: "Consent",
     description:
-      "Before we begin, review and agree to our consent form. Your privacy and data security come first.",
-    icon: <i className="bi bi-1-circle-fill text-[#191919]"></i>,
+      "Before we begin, review and agree to the consent form. This ensures transparency and protects your privacy while we process your fingerprint data.",
+    icon: <i className="bi bi-1-circle-fill"></i>,
   },
   {
-    text: "Information",
+    title: "Personal Information",
     description: (
-      <div>
+      <div className="flex flex-col gap-2">
         Provide your basic details:
-        <ul className="list-disc list-inside mt-2">
+        <ul className="list-disc list-inside">
           <li>Age</li>
           <li>Gender</li>
-          <li>Height</li>
-          <li>Weight</li>
-          <li>Blood donation eligibility (simple checklist)</li>
+          <li>Height & Weight</li>
+          <li>Blood Donation Eligibility</li>
         </ul>
+        These details help refine predictions and assess donation readiness.
       </div>
     ),
-    icon: <i className="bi bi-2-circle-fill text-[#191919]"></i>,
+    icon: <i className="bi bi-2-circle-fill"></i>,
   },
   {
-    text: "Fingerprint Scan",
+    title: "Fingerprint Scan & Analysis",
     description:
-      "Place your finger on the scanner. Our system analyzes your dermatoglyphic patterns with advanced machine learning.",
-    icon: <i className="bi bi-3-circle-fill text-[#191919]"></i>,
+      "Place your finger on the scanner and make sure it's clean. Your fingerprint is enhanced for clarity, classified into dermatoglyphic patterns (Loops, Whorls, or Arches), and processed by advanced machine learning models.",
+    icon: <i className="bi bi-3-circle-fill"></i>,
   },
   {
-    text: "Get Results",
+    title: "Results & Recommendations",
     description:
-      "View your predicted blood group, risk assessments (like diabetes), and donation eligibility instantly.",
-    icon: <i className="bi bi-4-circle-fill text-[#191919]"></i>,
+      "Instantly receive your predicted blood group, diabetes risk level, and blood donation eligibility. If eligible, we’ll guide you to nearby hospitals. Preventive health advice is also provided.",
+    icon: <i className="bi bi-4-circle-fill"></i>,
   },
 ];
 
 export default function LandingPage() {
   const router = useRouter();
-  
+  const [loading, setLoading] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
+  const [showTransition, setShowTransition] = useState(false);
+
+  useEffect(() => {
+    // Intro video auto hide after 5s
+    const timer = setTimeout(() => {
+      setShowIntro(false);
+      setShowTransition(true);
+
+      const transitionTimer = setTimeout(() => setShowTransition(false), 350);
+      return () => clearTimeout(transitionTimer);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleStartClick = () => {
+    setLoading(true);
+    setTimeout(() => {
+      router.push("/consent");
+    }, 500);
+  };
+
   return (
-    <div className="flex flex-col gap-4 min-h-screen items-center justify-center p-2 bg-white text-[#191919]">
-      <div className="flex flex-col gap-2 text-center">
-        <Alert className="max-w-full bg-yellow-100 border-yellow-400 text-yellow-900 shadow-lg flex items-center gap-3 mb-4">
-          <i className="bi bi-exclamation-triangle-fill text-2xl text-yellow-500" />
-          <AlertDescription className="text-center font-semibold">
-            Note: This is a research prototype. Not for clinical use.
-          </AlertDescription>
-        </Alert>
-        <h1 className="text-6xl font-bold">Printalyzer</h1>
-        <p className="text-2xl">Your fingerprint, your health insights.</p>
-      </div>
+    <div className="relative flex flex-col gap-4 min-h-screen p-4 overflow-hidden">
+      {/* Intro Video */}
+      {showIntro && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black">
+          <video
+            src="/landing-page/starting.mp4"
+            autoPlay
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+            onEnded={() => {
+              setShowIntro(false);
+              setShowTransition(true);
+              setTimeout(() => setShowTransition(false), 500);
+            }}
+          />
+        </div>
+      )}
 
-      <div className="flex flex-row gap-2 justify-center">
-        {cardContent.map((card, idx) => (
-          <Card
-            key={idx}
-            className="relative mt-8 w-80 h-[370px] flex flex-col justify-between shadow-lg"
-          >
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-4xl">
-              {card.icon}
-            </div>
-            <div className="p-6 flex flex-col items-center h-full">
-              <CardTitle className="text-2xl font-bold mb-4 uppercase">
-                {card.text}
-              </CardTitle>
-              <CardDescription className="text-lg">
-                {card.description}
-              </CardDescription>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      <div className="flex flex-col items-center mt-6">
-        <Button
-          onClick={() => router.push("/consent")}
-          className="bg-[#191919] hover:bg-black text-white p-6 rounded-50 text-xl font-bold shadow-lg transition-colors flex items-center gap-2"
+      {/* Transition Loading Overlay */}
+      {showTransition && (
+        <div
+          className="absolute inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: "#010b28" }} // custom bg
         >
-          <span>Start Health Analysis</span>
-          <Fingerprint />
-        </Button>
-      </div>
+          <LoaderCircle
+            className="animate-spin"
+            style={{ stroke: "#06fdcc", width: "5rem", height: "5rem" }} // custom icon color & size
+          />
+        </div>
+      )}
+
+      {/* Main Landing Page */}
+      {!showIntro && !showTransition && (
+        <>
+          <video
+            src="/landing-page/lpvid.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover z-0"
+          />
+
+          <Alert className="relative z-10 bg-red/60 border-2 border-red-600 text-red-800 backdrop-blur-md flex items-start p-4 rounded-lg">
+            <TriangleAlert className="h-6 w-6 text-red-600 mr-3 mt-1" />
+            <AlertDescription className="text-white text-base leading-relaxed relative flex">
+              <span className="font-bold text-white">Important:</span> This tool
+              is for educational purposes only and not a substitute for
+              professional medical advice. Always consult a healthcare provider
+              for medical concerns.
+            </AlertDescription>
+          </Alert>
+
+          <div className="grid grid-col-2 gap-4 p-2 justify-left z-10 relative">
+            <HyperText className="relative text-white text-8xl font-bold">
+              Printalyzer
+            </HyperText>
+            <p className="relative text-white text-2xl max-w-3xl">
+              A fingerprint-powered AI system that predicts blood group,
+              assesses disease risks, and evaluates blood donation eligibility &mdash;
+              combining dermatoglyphics with advanced machine learning.
+            </p>
+
+            <Button
+              onClick={handleStartClick}
+              disabled={loading}
+              className="relative bg-gradient-to-r from-blue-800 via-green-800 to-blue-900 
+                 hover:from-blue-700 hover:to-indigo-800 text-white px-10 py-9 
+                 rounded-2xl text-4xl font-bold shadow-lg 
+                 transition-all duration-300 ease-in-out transform hover:scale-105
+                 focus:ring-4 focus:ring-blue-400 w-180 mt-6 cursor-pointer flex items-center justify-between"
+            >
+              {loading ? (
+                <div className="flex items-center gap-3 w-full justify-center">
+                  <LoaderCircle className="animate-spin inline-block" />
+                  Loading...
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <i className="bi bi-fingerprint text-4xl"></i>
+                    <span>Tap to Start</span>
+                  </div>
+                  <i className="bi bi-arrow-right text-4xl"></i>
+                </>
+              )}
+            </Button>
+
+            <div className="relative z-10 px-6 mt-13">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {features.map((feature, index) => (
+                  <div
+                    key={index}
+                    className="backdrop-blur-md p-6 rounded-2xl shadow-lg 
+                    flex flex-col gap-3 text-white hover:scale-105 transition-transform duration-300
+                    bg-gradient-to-t from-black via-black/70 to-transparent"
+                  >
+                    <div className="text-4xl">{feature.icon}</div>
+                    <h3 className="text-2xl font-semibold">{feature.title}</h3>
+                    <div className="text-base text-gray-200">
+                      {feature.description}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
