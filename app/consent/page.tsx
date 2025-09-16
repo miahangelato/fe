@@ -4,25 +4,7 @@ import { useRouter } from "next/navigation";
 import { submitConsent } from "../../api/api_fingerprint_analysis";
 import { useConsent } from "../../contexts/ConsentContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import {
-  Shield,
-  FileText,
-  Lock,
-  ArrowRight,
-  ThumbsUp,
-  ThumbsDown,
-  CheckCircle,
-  XCircle,
-  TriangleAlert,
-} from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function ConsentPage() {
@@ -33,14 +15,12 @@ export default function ConsentPage() {
 
   const handleNext = async () => {
     if (consent === null) return;
-
     setLoading(true);
     try {
       await submitConsent(consent);
       setHasConsent(consent);
       router.push("/personal-info");
     } catch (error) {
-      console.error("Consent submission error:", error);
       alert("Error submitting consent. Please try again.");
     } finally {
       setLoading(false);
@@ -52,191 +32,165 @@ export default function ConsentPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Background Video */}
-      <video
-        src="/consent/bg.mp4"
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 top-30 w-full h-full object-cover z-0 rotate-180"
-      />
-
+    <div
+      className="relative flex flex-col min-h-screen p-0 overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(120deg, #fff 40%, #78caff 100%), linear-gradient(to bottom, transparent 60%, #78caff 100%)",
+        backgroundBlendMode: "overlay",
+      }}
+    >
       {/* Header */}
-      <div className="relative z-10 text-center bg-[#f6f7fd] p-8 rounded-lg shadow-lg">
-        {/* Icon Circle */}
-        <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center bg-[#ddddf4] rounded-full shadow-md">
-          <Shield className="w-8 h-8 text-[#001fa2]" />
-        </div>
-
-        <h1 className="text-5xl font-bold text-gray-800 mb-3">
+      <div className="px-10 pt-12 pb-18 flex flex-col items-center text-center">
+        <h1 className="text-7xl font-bold text-[#1a3557] tracking-tight mb-2">
           Data Privacy Consent
         </h1>
-        <p className="text-xl text-gray-700 mx-auto">
-          Your privacy and data security are our top priorities. Here&apos;s
-          what you need to know before we begin your health analysis.
+        <p className="text-3xl text-[#3a4b5e] mt-4">
+          Your privacy and data security are our top priority as we analyze your
+          health.
         </p>
       </div>
 
-      {/* Page Content */}
-      <div className="relative z-10 p-6">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-row gap-4">
-            {/* Quick Overview */}
-            <Card className="flex-1 p-4 bg-[#f6f7fd] border border-2 border-[#001fa2]">
-              <CardHeader className="mb-4">
-                <CardTitle className="flex items-center space-x-2 text-2xl">
-                  <div className="w-10 h-10 flex items-center justify-center bg-[#ddddf4] rounded-lg shadow-md">
-                    <FileText className="w-5 h-5 text-[#001fa2]" />
-                  </div>
-                  <span>What We&apos;ll Analyze</span>
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                <p className="text-foreground text-lg">
-                  We&apos;ll analyze your fingerprint patterns and basic health
-                  information to provide:
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-lg">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="size-7 text-[#001fa2] flex-shrink-0 bg-[#ddddf4] rounded-lg" />
-                    <span>Blood type prediction</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="size-7 text-[#001fa2] flex-shrink-0 bg-[#ddddf4] rounded-lg" />
-                    <span>Diabetes risk assessment</span>
-                  </div>
-                </div>
-
-                <Alert className="relative z-10 bg-red-100 border-2 border-red-600 text-red-800 backdrop-blur-md flex items-start p-4 rounded-lg">
-                  <TriangleAlert className="h-6 w-6 text-red-600 mt-1" />
-                  <AlertDescription className="text-black text-base leading-relaxed relative flex">
-                    <span className="font-bold text-red-900">Important:</span>{" "}
-                    This is a screening tool, not a medical diagnosis. Always
-                    consult healthcare professionals for medical advice.
-                  </AlertDescription>
-                </Alert>
-              </CardContent>
-            </Card>
-
-            {/* Privacy & Data Handling */}
-            <Card className="flex-1 p-4 bg-[#f6f7fd] border border-2 border-[#001fa2]">
-              <CardHeader className="mb-4">
-                <CardTitle className="flex items-center space-x-2 text-2xl">
-                  <div className="w-10 h-10 flex items-center justify-center bg-[#ddddf4] rounded-lg shadow-md">
-                    <Lock className="w-5 h-5 text-[#001fa2]" />
-                  </div>
-                  <span>Your Privacy</span>
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg">
-                  <div>
-                    <h4 className="font-medium text-[#001fa2] mb-2 inline-block bg-[#ddddf4] px-2 rounded-lg border border-2 border-[#001fa2]">
-                      We Collect:
-                    </h4>
-
-                    <ul className="space-y-1 text-foreground">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-6 h-6 text-[#001fa2] flex-shrink-0 bg-[#ddddf4] rounded-lg" />
-                        Basic demographics
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="w-6 h-6 text-[#001fa2] flex-shrink-0 bg-[#ddddf4] rounded-lg" />
-                        Fingerprint patterns
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium text-[#ff4d6a] mb-2 inline-block bg-[#ffe5eb] px-2 rounded-lg border border-2 border-[#ffb3c1]">
-                      We Don&apos;t:
-                    </h4>
-                    <ul className="space-y-1 text-foreground">
-                      <li className="flex items-center gap-2">
-                        <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 bg-[#fddede] rounded-lg" />
-                        Store personal identifiers
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 bg-[#fddede] rounded-lg" />
-                        Share with third parties
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      {/* Main Content */}
+      <div className="px-10 flex flex-col gap-6">
+        <div className="flex flex-row gap-6">
+          {/* What We'll Analyze */}
+          <div className="flex-1 bg-white border-3 border-[#75a9d7] rounded-2xl shadow p-10">
+            <div className="flex items-center gap-3 mb-8">
+              <i className="bi bi-file-earmark-text text-5xl text-[#3a87d5]" />
+              <span className="text-6xl font-bold text-[#1a3557]">
+                What We'll Analyze
+              </span>
+            </div>
+            <div className="pl-15">
+              <div className="text-3xl text-[#3a4b5e] mb-6">
+                We'll analyze your fingerprints and info to provide:
+              </div>
+              <ul className="space-y-3 text-3xl mb-8">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-7 h-7 text-[#00b67a]" />
+                  Blood type prediction
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-7 h-7 text-[#00b67a]" />
+                  Diabetes risk assessment
+                </li>
+              </ul>
+            </div>
+            <div className="mt-2">
+              <Alert className="bg-red-700 border-2 border-red-600 text-white backdrop-blur-md flex items-start p-4 rounded-xl shadow-lg pointer-events-auto">
+                <i className="bi bi-exclamation-triangle-fill text-3xl text-white mr-3" />
+                <AlertDescription className="text-white text-2xl leading-relaxed relative flex">
+                  <span className="font-bold text-white mr-2">Important:</span>
+                  This is a screening tool, not a diagnosis. Always consult
+                  healthcare professionals.
+                </AlertDescription>
+              </Alert>
+            </div>
           </div>
 
-          <div>
-            {/* Consent Choice */}
-            <Card className="p-4 bg-[#f6f7fd] border border-2 border-[#001fa2]">
-              <CardHeader className="mb-4">
-                <CardTitle className="flex items-center space-x-2 text-2xl">
-                  <div className="w-10 h-10 flex items-center justify-center bg-[#ddddf4] rounded-lg shadow-md">
-                    <Shield className="w-5 h-5 text-[#001fa2]" />
-                  </div>
-                  <span>Your Choice</span>
-                </CardTitle>
-                <CardDescription className="text-lg text-foreground">
-                  Please choose whether you consent to the use of your data.
-                </CardDescription>
-              </CardHeader>
+          {/* Your Privacy */}
+          <div className="flex-1 bg-white border-3 border-[#75a9d7] rounded-2xl shadow p-10">
+            <div className="flex items-center gap-3 mb-8">
+              <i className="bi bi-shield-lock text-5xl text-[#3a87d5]" />
+              <span className="text-6xl font-bold text-[#1a3557]">
+                Your Privacy
+              </span>
+            </div>
 
-              <Separator className="mt-4 mb-4" />
+            <div className="flex flex-row gap-10">
+              <div className="flex-1">
+                <h4 className="font-semibold text-[#3a87d5] mb-2 text-3xl">
+                  We Collect:
+                </h4>
+                <ul className="space-y-3 text-3xl">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-7 h-7 text-[#00b67a]" />
+                    Basic info (age, gender, etc.)
+                  </li>
+                </ul>
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-[#ff4d6a] mb-2 text-3xl">
+                  We Don't:
+                </h4>
+                <ul className="space-y-3 text-3xl">
+                  <li className="flex items-center gap-2">
+                    <XCircle className="w-7 h-7 text-[#ff4d6a]" />
+                    Store personal identifiers
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <XCircle className="w-7 h-7 text-[#ff4d6a]" />
+                    Share with third parties
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
 
-              <CardContent className="space-y-4">
-                <div className="flex flex-col md:flex-row gap-4 justify-center">
-                  <Button
-                    variant={consent === true ? "default" : "outline"}
-                    className="flex-1 flex items-center justify-center gap-2 text-lg cursor-pointer"
-                    onClick={() => setConsent(true)}
-                  >
-                    <ThumbsUp className="w-5 h-5" />I Consent
-                  </Button>
-                  <Button
-                    variant={consent === false ? "destructive" : "outline"}
-                    className="flex-1 flex items-center justify-center gap-2 text-lg cursor-pointer"
-                    onClick={() => setConsent(false)}
-                  >
-                    <ThumbsDown className="w-5 h-5" />I Do Not Consent
-                  </Button>
-                </div>
+        {/* Consent Choice */}
+        <div className="flex flex-row p-10 mt-2 items-center justify-between">
+          {/* Left: Title and description */}
+          <div className="flex flex-col flex-1 min-w-[320px]">
+            <div className="flex items-center gap-3 mb-2">
+              <i className="bi bi-person-check text-5xl text-[#3a87d5]" />
+              <span className="text-5xl font-bold text-[#1a3557]">
+                Your Choice
+              </span>
+            </div>
+            <div className="text-3xl text-[#3a4b5e] mb-0">
+              You can stop or agree to continue. No personal identifiers are
+              stored.
+            </div>
+          </div>
 
-                <p className="text-md text-muted-foreground text-center">
-                  You can stop the process at any time. No personal identifiers
-                  are stored.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="flex flex-row gap-4 justify-between items-center mt-5">
-              {/* Back Button */}
+          {/* Right: Buttons */}
+          <div className="flex flex-col gap-4 ml-12">
+            <div className="flex flex-row gap-6">
               <Button
-                className="text-lg bg-[#ddddf4] text-[#001fa2] border border-[#001fa2] hover:bg-[#cfd5f0] flex-1 cursor-pointer"
-                onClick={handleBack}
+                className={`flex-1 flex items-center justify-center gap-2 text-4xl font-semibold px-10 py-8 rounded-lg transition-all duration-200 ${
+                  consent === true
+                    ? "bg-[#3a87d5] text-white hover:bg-blue-900"
+                    : "bg-[#3a87d5] text-white border-3 border-[#75a9d7] hover:bg-blue-800 shadow-xl shadow-[#3a87d5] hover:scale-105"
+                }`}
+                onClick={() => setConsent(true)}
               >
-                <span className="leading-none">Back</span>
+                <i className="bi bi-hand-thumbs-up-fill text-3xl" />I Consent
               </Button>
 
-              {/* Start Analysis Button */}
               <Button
-                onClick={handleNext}
-                disabled={consent === null || loading}
-                className="px-4 flex-1 flex items-center justify-center gap-2 text-lg bg-[#001fa2] text-white hover:bg-[#0031a0] disabled:opacity-50 cursor-pointer"
+                className={`flex-1 flex items-center justify-center gap-2 text-4xl font-semibold px-10 py-8 rounded-lg transition-all duration-200 ${
+                  consent === false
+                    ? "bg-gray-900 text-white"
+                    : "bg-white text-[#1a3557] border border-[#3a87d5] hover:bg-[#e0f2ff]"
+                }`}
+                onClick={() => setConsent(false)}
               >
-                <span className="leading-none">
-                  {loading ? "Processing..." : "Begin Analysis"}
-                </span>
-                {!loading && <ArrowRight className="w-5 h-5 flex-shrink-0" />}
+                <i className="bi bi-hand-thumbs-down-fill text-3xl" />I Do Not
+                Consent
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Bottom buttons */}
+        <div className="flex flex-row justify-between items-center">
+          <Button
+            className="text-4xl bg-white text-[#3a87d5] border border-[#3a87d5] hover:bg-[#e0f2ff] px-10 py-8 rounded-lg font-semibold"
+            onClick={handleBack}
+          >
+            ← Back
+          </Button>
+          <div className="flex-1" />
+          <Button
+            onClick={handleNext}
+            disabled={consent === null || loading}
+            className="px-10 py-8 text-4xl flex items-center justify-center gap-2 bg-[#1a3557] text-white hover:bg-[#3a87d5] rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          >
+            <span>{loading ? "Processing..." : "Begin Analysis"}</span>
+            {!loading && <i className="bi bi-arrow-right text-3xl" />}
+          </Button>
         </div>
       </div>
     </div>

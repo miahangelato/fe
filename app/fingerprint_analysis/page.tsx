@@ -21,21 +21,30 @@ import {
   ChevronLeft,
   RotateCcw,
   Upload,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HandGuide } from "@/components/HandGuide";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Single Fingerprint Card Component
 function SingleFingerprintCard({
   fingerFiles,
   onScanComplete,
   onFileChange,
+  participant,
+  willingToDonate,
+  currentFingerIndex,
+  setCurrentFingerIndex,
 }: {
   fingerFiles: { [key in FingerName]?: File };
   onScanComplete: (fingerName: FingerName, file: File) => void;
   onFileChange: (finger: FingerName, file: File | null) => void;
+  participant: ParticipantData;
+  willingToDonate: boolean | null;
+  currentFingerIndex: number;
+  setCurrentFingerIndex: React.Dispatch<React.SetStateAction<number>>;
 }) {
-  const [currentFingerIndex, setCurrentFingerIndex] = useState(0);
   const currentFinger = FINGER_ORDER[currentFingerIndex];
   const [handRaw, fingerRaw] = currentFinger.split("_");
   const hand = handRaw as "right" | "left";
@@ -83,190 +92,245 @@ function SingleFingerprintCard({
   return (
     <div className="grid grid-cols-3 gap-4">
       {/* Left - Scan Area */}
-      <Card className="col-span-2 p-4 shadow-sm border rounded-2xl">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-3xl font-bold justify-center flex items-center mb-2">
-            <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm mr-2">
+      <Card className="col-span-2 p-4 shadow-xl border-3 border-[#75a9d7] rounded-2xl shadow-[#75a9d7] items-center justify-center">
+        <CardHeader className="flex flex-row items-center justify-center">
+          <CardTitle className="text-4xl font-bold justify-center flex items-center">
+            <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-3xl mr-2">
               {currentFingerIndex + 1} of {totalFingers}
             </span>
             {handRaw.charAt(0).toUpperCase() + handRaw.slice(1)}{" "}
             {fingerRaw.charAt(0).toUpperCase() + fingerRaw.slice(1)}
           </CardTitle>
-          <div className="text-lg text-gray-500">
-            Progress {Object.keys(fingerFiles).length}/{totalFingers}
-          </div>
         </CardHeader>
 
-        <CardContent className="flex flex-col items-center space-y-6">
-          <div className="flex flex-row items-center gap-2">
+        <CardContent className="flex flex-col items-center space-y-6 justify-center">
+          <div className="flex flex-row items-center gap-4 mt-8">
             <div className="flex flex-col items-center space-y-6">
-              <div className="w-64 h-64 flex items-center justify-center bg-gray-50 rounded-2xl border">
+              <div className="w-94 h-94 flex items-center justify-center bg-gray-50 rounded-2xl border">
                 <HandGuide hand={hand} highlightFinger={highlight} />
               </div>
 
-              <FingerprintScanner
-                onScanComplete={handleScanCompleteWithAdvance}
-                currentFinger={currentFinger}
-              />
+              <div className="flex items-center gap-4">
+                <FingerprintScanner
+                  onScanComplete={handleScanCompleteWithAdvance}
+                  currentFinger={currentFinger}
+                />
+
+                {/* Upload Button beside scanner - Hide it when not usable anymore!!! */}
+                <div className="flex flex-col items-center">
+                  <label className="flex flex-row gap-2 items-center justify-center border-3 border-[#75a9d7] border-dashed rounded-xl cursor-pointer hover:bg-blue-50 transition hover:scale-95 p-4">
+                    <Upload className="w-8 h-8 text-blue-400 mb-2" />
+                    <span className="text-xl text-gray-600 text-center">
+                      Upload Alternative
+                    </span>
+                    <input
+                      id="hidden-scan-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          onFileChange(currentFinger, file);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
             </div>
 
-            {isScanned && (
-              <div className="flex flex-col items-center">
-                <img
-                  src={URL.createObjectURL(fingerFiles[currentFinger]!)}
-                  alt={currentFinger}
-                  className="w-40 h-40 object-contain border-2 border-blue-400 rounded-lg shadow"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onFileChange(currentFinger, null)}
-                  className="mt-3 flex items-center gap-2 cursor-pointer"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Rescan
-                </Button>
-              </div>
-            )}
+            {/* Scanned Image Display or Placeholder */}
+            <div className="flex flex-col items-center">
+              {isScanned ? (
+                <>
+                  <img
+                    src={URL.createObjectURL(fingerFiles[currentFinger]!)}
+                    alt={currentFinger}
+                    className="w-60 h-60 object-contain border-2 border-blue-400 rounded-lg shadow"
+                  />
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => onFileChange(currentFinger, null)}
+                    className="mt-3 flex items-center gap-2 cursor-pointer text-3xl py-6"
+                  >
+                    <RotateCcw className="w-8 h-8" />
+                    Rescan
+                  </Button>
+                </>
+              ) : (
+                <div className="w-60 h-60 flex items-center text-center justify-center border-2 border-dashed border-blue-300 rounded-lg bg-blue-50 text-blue-400 text-xl font-medium shadow-inner">
+                  Fingerprint preview will appear here
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-6 mt-4">
             <Button
               type="button"
               variant="default"
-              size="lg"
+              size="sm"
               onClick={handlePrevious}
               disabled={currentFingerIndex === 0}
-              className="rounded-full cursor-pointer"
+              className="rounded-md cursor-pointer py-8 px-4 text-3xl bg-[#1a3557] hover:bg-[#3a87d5] text-white flex items-center justify-center gap-2"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <i className="bi bi-arrow-left text-3xl" /> Previous
             </Button>
 
-            <div className="flex gap-2">
-              {FINGER_ORDER.map((finger, index) => {
-                const isCompleted = !!fingerFiles[finger];
-                const isCurrent = index === currentFingerIndex;
-                return (
-                  <button
-                    type="button"
-                    key={finger}
-                    onClick={() => handleGoToFinger(index)}
-                    disabled={!isCompleted && index > currentFingerIndex}
-                    className={`w-9 h-9 text-xs rounded-md font-medium border transition-all
-                    ${
-                      isCurrent
-                        ? "bg-blue-500 text-white border-blue-500"
-                        : isCompleted
-                        ? "bg-blue-100 text-blue-600 border-blue-300"
-                        : "bg-gray-100 text-gray-400 border-gray-200"
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              })}
+            <div className="text-3xl font-semibold text-gray-700">
+              Step {currentFingerIndex + 1} of {totalFingers}
             </div>
 
             <Button
               type="button"
               variant="default"
-              size="lg"
+              size="sm"
               onClick={handleNext}
               disabled={!isScanned || currentFingerIndex === totalFingers - 1}
-              className="rounded-full cursor-pointer"
+              className="rounded-md cursor-pointer py-8 px-4 text-3xl bg-[#1a3557] hover:bg-[#3a87d5] text-white flex items-center justify-center gap-2"
             >
-              <ChevronRight className="w-4 h-4" />
+              Next <i className="bi bi-arrow-right text-3xl" />
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Right - Upload + Progress */}
+      {/* Right - Instructions and Participant Info */}
       <div className="flex flex-col gap-4">
-        <Card className="p-4 shadow-sm border rounded-2xl">
-          <CardTitle className="text-xl font-bold mb-3">
-            Upload Alternative
+        <Card className="p-6 shadow-sm border-3 border-[#75a9d7] rounded-2xl">
+          <CardTitle className="text-4xl font-bold text-slate-800 mb-6">
+            Scanning Instructions
           </CardTitle>
-          <label className="w-full h-32 flex flex-col items-center justify-center border-2 border-dashed border-blue-300 rounded-xl cursor-pointer hover:bg-blue-50 transition hover:scale-95">
-            <Upload className="w-6 h-6 text-blue-400 mb-2" />
-            <span className="text-sm text-gray-600">Upload File</span>
-            <input
-              id="hidden-scan-input"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  onFileChange(currentFinger, file);
-                }
-              }}
-            />
-          </label>
-        </Card>
 
-        <Card className="p-4 shadow-sm border rounded-2xl">
-          <CardTitle className="text-2xl font-bold mb-2">
-            Scan Progress
-          </CardTitle>
-          <div className="text-lg text-gray-600 mb-2">
-            Overall Progress {Object.keys(fingerFiles).length}/{totalFingers}
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-            <div
-              className="bg-blue-500 h-2 rounded-full transition-all"
-              style={{
-                width: `${
-                  (Object.keys(fingerFiles).length / totalFingers) * 100
-                }%`,
-              }}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-            {/* Left Hand */}
-            <div>
-              {FINGER_ORDER.filter((f) => f.startsWith("left")).map(
-                (finger) => (
-                  <div
-                    key={finger}
-                    className={`flex items-center text-lg ${
-                      fingerFiles[finger] ? "text-blue-600" : "text-gray-400"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      checked={finger === currentFinger}
-                      readOnly
-                      className="mr-2 accent-blue-500"
-                    />
-                    {finger.replace("_", " ").toUpperCase()}
-                  </div>
-                )
-              )}
+          <div className="space-y-4">
+            {/* Step 1 */}
+            <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-xl">
+              <i className="bi bi-1-circle-fill text-4xl text-blue-600 mt-1" />
+              <div>
+                <p className="text-3xl font-semibold text-gray-800">
+                  Clean your finger
+                </p>
+                <p className="text-2xl text-gray-500">
+                  Ensure finger is clean and dry
+                </p>
+              </div>
             </div>
 
-            {/* Right Hand */}
-            <div>
-              {FINGER_ORDER.filter((f) => f.startsWith("right")).map(
-                (finger) => (
-                  <div
-                    key={finger}
-                    className={`flex items-center text-lg ${
-                      fingerFiles[finger] ? "text-blue-600" : "text-gray-400"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      checked={finger === currentFinger}
-                      readOnly
-                      className="mr-2 accent-blue-500"
-                    />
-                    {finger.replace("_", " ").toUpperCase()}
-                  </div>
-                )
-              )}
+            {/* Step 2 */}
+            <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-xl">
+              <i className="bi bi-2-circle-fill text-4xl text-blue-600 mt-1" />
+              <div>
+                <p className="text-3xl font-semibold text-gray-800">
+                  Position correctly
+                </p>
+                <p className="text-2xl text-gray-500">
+                  Place finger flat on the scanner
+                </p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-xl">
+              <i className="bi bi-3-circle-fill text-4xl text-blue-600 mt-1" />
+              <div>
+                <p className="text-3xl font-semibold text-gray-800">
+                  Hold steady
+                </p>
+                <p className="text-2xl text-gray-500">
+                  Keep finger still during scan
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Tip Section */}
+          <div className="text-xl text-gray-600 mt-2">
+            <span className="font-bold">Tip:</span> If scanning fails, try
+            adjusting finger pressure or cleaning the scanner surface.
+          </div>
+        </Card>
+
+        <Card className="p-6 shadow-lg border-0 rounded-3xl bg-gradient-to-br from-blue-50 to-white">
+          {/* Participant Info Header */}
+          <CardTitle className="flex items-center gap-3 text-4xl font-bold text-slate-800 mb-6">
+            Participant Information
+          </CardTitle>
+
+          {/* Participant Info Grid */}
+          <div className="grid grid-cols-3 gap-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <i className="bi bi-person text-blue-500 text-xl"></i>
+              </div>
+              <div>
+                <div className="text-xl text-gray-500 font-medium">Age:</div>
+                <div className="text-xl font-semibold text-gray-800">
+                  {participant.age}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <i className="bi bi-gender-ambiguous text-blue-500 text-xl"></i>
+              </div>
+              <div>
+                <div className="text-xl text-gray-500 font-medium">Gender:</div>
+                <div className="text-xl font-semibold text-gray-800">
+                  {participant.gender}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <i className="bi bi-rulers text-blue-500 text-xl"></i>
+              </div>
+              <div>
+                <div className="text-xl text-gray-500 font-medium">Height:</div>
+                <div className="text-xl font-semibold text-gray-800">
+                  {participant.height} cm
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <i className="bi bi-speedometer text-blue-500 text-xl"></i>
+              </div>
+              <div>
+                <div className="text-xl text-gray-500 font-medium">Weight:</div>
+                <div className="text-xl font-semibold text-gray-800">
+                  {participant.weight} kg
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <i className="bi bi-droplet text-blue-500 text-xl"></i>
+              </div>
+              <div>
+                <div className="text-xl text-gray-500 font-medium">Blood:</div>
+                <div className="text-xl font-semibold text-gray-800">
+                  {participant.blood_type}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <i className="bi bi-heart text-blue-500 text-xl"></i>
+              </div>
+              <div>
+                <div className="text-xl text-gray-500 font-medium">Donor:</div>
+                <div className="text-xl font-semibold text-gray-800">
+                  {willingToDonate ? "Yes" : "No"}
+                </div>
+              </div>
             </div>
           </div>
         </Card>
@@ -285,6 +349,7 @@ export default function FingerprintScanPage() {
   } = useConsent();
 
   const router = useRouter();
+  const [currentFingerIndex, setCurrentFingerIndex] = useState(0);
   const [participant, setParticipant] = useState<ParticipantData | null>(null);
   const [willingToDonate, setWillingToDonate] = useState<boolean | null>(null);
   const [fingerFiles, setFingerFiles] = useState<{
@@ -381,7 +446,10 @@ export default function FingerprintScanPage() {
   };
 
   const handleBack = () => router.back();
-  const handleClearAll = () => setFingerFiles({});
+  const handleClearAll = () => {
+    setFingerFiles({});
+    setCurrentFingerIndex(0);
+  };
 
   if (!participant) {
     return (
@@ -392,89 +460,62 @@ export default function FingerprintScanPage() {
   }
 
   return (
-    <div className="min-h-screen p-8">
-      {/* Background Video */}
-      <video
-        src="/fprint-anal/bg.mp4"
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 h-full w-full object-cover -z-1 opacity-10 rotate-180"
-      />
-
+    <div
+      className="min-h-screen p-8"
+      style={{
+        background:
+          "linear-gradient(120deg, #fff 40%, #78caff 100%), linear-gradient(to bottom, transparent 60%, #78caff 100%)",
+        backgroundBlendMode: "overlay",
+      }}
+    >
       {/* Header */}
-      <div className="flex items-center mb-6 justify-center">
-        <Fingerprint className="w-14 h-14 text-blue-500 mr-2" />
-        <div>
-          <h1 className="text-5xl font-bold">Biometric Analysis</h1>
-          <p className="text-xl text-gray-900">
+      <div className="flex items-center mb-10 justify-center">
+        <div className="text-center">
+          <h1 className="text-7xl font-bold">Biometric Analysis</h1>
+          <p className="text-3xl text-gray-900">
             Secure fingerprint scanning system
           </p>
         </div>
       </div>
-
-      {/* Participant Info */}
-      <Card className="mb-6 border rounded-2xl shadow-sm">
-        <CardContent className="grid grid-cols-6 gap-4 p-4 text-lg">
-          <div>
-            <strong>AGE</strong>
-            <br />
-            {participant.age}
-          </div>
-          <div>
-            <strong>GENDER</strong>
-            <br />
-            {participant.gender}
-          </div>
-          <div>
-            <strong>HEIGHT</strong>
-            <br />
-            {participant.height} cm
-          </div>
-          <div>
-            <strong>WEIGHT</strong>
-            <br />
-            {participant.weight} kg
-          </div>
-          <div>
-            <strong>BLOOD</strong>
-            <br />
-            {participant.blood_type}
-          </div>
-          <div>
-            <strong>DONOR</strong>
-            <br />
-            {willingToDonate ? "Yes" : "No"}
-          </div>
-        </CardContent>
-      </Card>
 
       <form onSubmit={handleSubmit}>
         <SingleFingerprintCard
           fingerFiles={fingerFiles}
           onScanComplete={handleScanComplete}
           onFileChange={handleFileChange}
+          participant={participant}
+          willingToDonate={willingToDonate}
+          currentFingerIndex={currentFingerIndex}
+          setCurrentFingerIndex={setCurrentFingerIndex}
         />
 
         {/* Bottom Buttons */}
         <div className="flex justify-between mt-5">
           <Button
-            type="button"
+            className="text-4xl bg-white text-[#3a87d5] border border-[#3a87d5] hover:bg-[#e0f2ff] px-10 py-8 rounded-lg font-semibold"
             onClick={handleBack}
-            variant="outline"
-            className="px-8 text-3xl py-6 font-bold bg-black text-white cursor-pointer"
           >
-            Back
+            ← Back
           </Button>
+
           <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={handleClearAll}
+              disabled={submitting}
+              className="bg-red-700 hover:bg-red-600 text-white font-semibold text-3xl px-6 py-2 rounded-lg cursor-pointer"
+            >
+              <i className="bi bi-trash3-fill text-2xl mr-2" />
+              Clear All
+            </button>
+
             <button
               type="submit"
               disabled={
                 submitting ||
                 Object.keys(fingerFiles).length !== FINGER_ORDER.length
               }
-              className={`px-6 py-2 rounded-lg text-white text-xl font-bold ${
+              className={`px-6 py-2 rounded-lg text-white text-4xl font-bold ${
                 submitting ||
                 Object.keys(fingerFiles).length !== FINGER_ORDER.length
                   ? "bg-blue-300 cursor-not-allowed"
@@ -485,20 +526,28 @@ export default function FingerprintScanPage() {
                 ? "Processing..."
                 : `Submit Analysis (${Object.keys(fingerFiles).length}/${
                     FINGER_ORDER.length
-                  })`}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleClearAll}
-              disabled={submitting}
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold text-xl px-6 py-2 rounded-lg cursor-pointer"
-            >
-              Clear All
+                  }) →`}
             </button>
           </div>
         </div>
       </form>
+
+      {/* Loader Overlay */}
+      {submitting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="flex flex-col items-center space-y-6">
+            <Loader2 className="w-16 h-16 text-white animate-spin" />
+            <Alert className="bg-red-700 border-2 border-red-600 text-white backdrop-blur-md flex items-start p-4 rounded-xl shadow-lg pointer-events-auto">
+              <i className="bi bi-exclamation-triangle-fill text-4xl text-white mr-3" />
+              <AlertDescription className="text-white text-3xl relative flex">
+                <span className="font-bold text-white mr-2">Important:</span>
+                This is a screening tool, not a diagnosis. Always consult
+                healthcare professionals.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -207,7 +207,7 @@ export default function FingerprintScanner({
       <button
         onClick={startScan}
         disabled={scanning || waitingForResults}
-        className="text-lg bg-blue-600 hover:bg-blue-900 text-white px-4 py-2 rounded disabled:bg-gray-400 cursor-pointer hover:scale-105 transition-transform"
+        className="text-3xl bg-blue-600 hover:bg-blue-900 font-bold text-white rounded-xl px-5 py-5 rounded disabled:bg-gray-400 cursor-pointer hover:scale-105 transition-transform"
       >
         {waitingForResults
           ? "Processing Results..."
@@ -221,11 +221,11 @@ export default function FingerprintScanner({
           <div className="animate-pulse">
             ⏳ Waiting for backend processing...
           </div>
-          <div className="text-xs mt-1">This may take a few moments</div>
+          <div className="text-xl mt-1">This may take a few moments</div>
         </div>
       )}
 
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-red-500 text-xl">{error}</p>}
     </div>
   );
 }

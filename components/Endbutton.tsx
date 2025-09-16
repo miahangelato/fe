@@ -17,7 +17,7 @@ const EndButton: React.FC = () => {
   return (
     <button
       onClick={handleEndProcess}
-      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+      className="bg-red-800 text-3xl text-white font-bold px-4 py-2 rounded-lg hover:bg-red-700 cursor-pointer"
     >
       End Process
     </button>
