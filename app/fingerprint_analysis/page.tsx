@@ -15,6 +15,7 @@ import { FingerName, FINGER_ORDER } from "../../types/fingerprint";
 import FingerprintScanner from "../../components/FingerprintScanner";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProgressHeader } from "@/components/ProgressHeader";
 import {
   Fingerprint,
   ChevronRight,
@@ -90,7 +91,16 @@ function SingleFingerprintCard({
   };
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="flex flex-col">
+      {/* Progress Header */}
+      <ProgressHeader
+        currentStep={3}
+        totalSteps={4}
+        title="Fingerprint Scan & Analysis"
+        subtitle="Please follow the instructions to scan your fingerprints"
+      />
+      
+      <div className="grid grid-cols-3 gap-4 p-4">
       {/* Left - Scan Area */}
       <Card className="col-span-2 p-4 shadow-xl border-3 border-[#75a9d7] rounded-2xl shadow-[#75a9d7] items-center justify-center">
         <CardHeader className="flex flex-row items-center justify-center">
@@ -548,6 +558,7 @@ export default function FingerprintScanPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

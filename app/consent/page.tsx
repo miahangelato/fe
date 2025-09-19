@@ -1,11 +1,21 @@
 "use client";
-import { useState } from "react";
+
+
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { submitConsent } from "../../api/api_fingerprint_analysis";
 import { useConsent } from "../../contexts/ConsentContext";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ProgressHeader }  from "@/components/ProgressHeader";
+import { ConsentButton } from "@/components/consent-button";
+import { BackButton, NextButton } from "@/components/Button";
+import { 
+  CheckCircle, XCircle, FileText, Shield, UserCheck, 
+  ArrowLeft, ArrowRight, Fingerprint 
+} from "lucide-react";
+import { Footer } from "@/components/Footer";
 
 export default function ConsentPage() {
   const [consent, setConsent] = useState<boolean | null>(null);
@@ -32,167 +42,137 @@ export default function ConsentPage() {
   };
 
   return (
-    <div
-      className="relative flex flex-col min-h-screen p-0 overflow-hidden"
-      style={{
-        background:
-          "linear-gradient(120deg, #fff 40%, #78caff 100%), linear-gradient(to bottom, transparent 60%, #78caff 100%)",
-        backgroundBlendMode: "overlay",
-      }}
-    >
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="px-10 pt-12 pb-18 flex flex-col items-center text-center">
-        <h1 className="text-7xl font-bold text-[#1a3557] tracking-tight mb-2">
-          Data Privacy Consent
-        </h1>
-        <p className="text-3xl text-[#3a4b5e] mt-4">
-          Your privacy and data security are our top priority as we analyze your
-          health.
-        </p>
-      </div>
+
 
       {/* Main Content */}
-      <div className="px-10 flex flex-col gap-6">
-        <div className="flex flex-row gap-6">
-          {/* What We'll Analyze */}
-          <div className="flex-1 bg-white border-3 border-[#75a9d7] rounded-2xl shadow p-10">
-            <div className="flex items-center gap-3 mb-8">
-              <i className="bi bi-file-earmark-text text-5xl text-[#3a87d5]" />
-              <span className="text-6xl font-bold text-[#1a3557]">
-                What We'll Analyze
-              </span>
+      <main className="w-full px-6 md:px-12 lg:px-16 xl:px-20 py-4 flex-1 flex flex-col">
+        {/* Progress Header with Progress Bar */}
+        <ProgressHeader 
+          currentStep={1}
+          totalSteps={4}
+          title="Data Privacy Consent"
+          subtitle="Your privacy and data security are our top priority as we analyze your health."
+          accentColor="#00c2cb"
+        />
+
+        {/* Main Content Grid */}
+        <div className="grid md:grid-cols-2 gap-6 mb-10 flex-1">
+          {/* What We'll Analyze Card */}
+          <div className="bg-white rounded-lg p-5 border border-[#00c2cb] hover:shadow-md transition-shadow duration-200 ">
+            <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#e4f7f8] mb-3">
+              <FileText className="text-[#00c2cb] h-6 w-6" />
             </div>
-            <div className="pl-15">
-              <div className="text-3xl text-[#3a4b5e] mb-6">
-                We'll analyze your fingerprints and info to provide:
+            <h2 className="text-xl font-medium mb-2 text-gray-800">What We'll Analyze</h2>
+            <p className="text-base text-gray-600 mb-4">We'll analyze your fingerprints and info to provide:</p>
+
+            <div className="space-y-4 mb-4">
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-[#00c2cb] mr-3 flex-shrink-0" />
+                <span className="text-lg text-gray-700">Blood type prediction</span>
               </div>
-              <ul className="space-y-3 text-3xl mb-8">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-7 h-7 text-[#00b67a]" />
-                  Blood type prediction
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-7 h-7 text-[#00b67a]" />
-                  Diabetes risk assessment
-                </li>
-              </ul>
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-[#00c2cb] mr-3 flex-shrink-0" />
+                <span className="text-lg text-gray-700">Diabetes risk assessment</span>
+              </div>
             </div>
-            <div className="mt-2">
-              <Alert className="bg-red-700 border-2 border-red-600 text-white backdrop-blur-md flex items-start p-4 rounded-xl shadow-lg pointer-events-auto">
-                <i className="bi bi-exclamation-triangle-fill text-3xl text-white mr-3" />
-                <AlertDescription className="text-white text-2xl leading-relaxed relative flex">
-                  <span className="font-bold text-white mr-2">Important:</span>
-                  This is a screening tool, not a diagnosis. Always consult
-                  healthcare professionals.
-                </AlertDescription>
-              </Alert>
+
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <div className="flex items-start text-sm text-red-800">
+                <strong>Important:</strong>&nbsp;This is a screening tool, not a diagnosis.
+              </div>
             </div>
           </div>
 
-          {/* Your Privacy */}
-          <div className="flex-1 bg-white border-3 border-[#75a9d7] rounded-2xl shadow p-10">
-            <div className="flex items-center gap-3 mb-8">
-              <i className="bi bi-shield-lock text-5xl text-[#3a87d5]" />
-              <span className="text-6xl font-bold text-[#1a3557]">
-                Your Privacy
-              </span>
+          {/* Your Privacy Card */}
+          <div className="bg-white rounded-lg p-5 border border-[#00c2cb] hover:shadow-md transition-shadow duration-200">
+            <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#e4f7f8] mb-3">
+              <Shield className="text-[#00c2cb] h-6 w-6" />
             </div>
+            <h2 className="text-xl font-medium mb-3 text-gray-800">Your Privacy</h2>
 
-            <div className="flex flex-row gap-10">
-              <div className="flex-1">
-                <h4 className="font-semibold text-[#3a87d5] mb-2 text-3xl">
-                  We Collect:
-                </h4>
-                <ul className="space-y-3 text-3xl">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-7 h-7 text-[#00b67a]" />
-                    Basic info (age, gender, etc.)
-                  </li>
-                </ul>
+            <div className="grid md:grid-cols-2 gap-6 mt-3">
+              <div>
+                <h3 className="text-lg font-medium text-[#00c2cb] mb-3">We Collect:</h3>
+                <div className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-[#00c2cb] mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="text-base text-gray-700">Basic info (age, gender, etc.)</span>
+                </div>
               </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-[#ff4d6a] mb-2 text-3xl">
-                  We Don't:
-                </h4>
-                <ul className="space-y-3 text-3xl">
-                  <li className="flex items-center gap-2">
-                    <XCircle className="w-7 h-7 text-[#ff4d6a]" />
-                    Store personal identifiers
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <XCircle className="w-7 h-7 text-[#ff4d6a]" />
-                    Share with third parties
-                  </li>
-                </ul>
+
+              <div>
+                <h3 className="text-lg font-medium text-red-500 mb-3">We Don't:</h3>
+                <div className="space-y-3">
+                  <div className="flex items-start">
+                    <XCircle className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-base text-gray-700">Store personal identifiers</span>
+                  </div>
+                  <div className="flex items-start">
+                    <XCircle className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-base text-gray-700">Share with third parties</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Consent Choice */}
-        <div className="flex flex-row p-10 mt-2 items-center justify-between">
-          {/* Left: Title and description */}
-          <div className="flex flex-col flex-1 min-w-[320px]">
-            <div className="flex items-center gap-3 mb-2">
-              <i className="bi bi-person-check text-5xl text-[#3a87d5]" />
-              <span className="text-5xl font-bold text-[#1a3557]">
-                Your Choice
-              </span>
+        {/* Your Choice Section */}
+        <div className="bg-[#e4f7f8] rounded-lg p-5 border border-[#00c2cb] hover:shadow-md transition-shadow duration-200 mb-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-5">
+            {/* Left side: Icon, Title and description */}
+            <div className="md:flex-1">
+              <div className="flex items-center mb-2">
+                <UserCheck className="text-[#00c2cb] h-6 w-6 mr-3" />
+                <h2 className="text-xl font-medium text-gray-800">Your Choice</h2>
+              </div>
+              <p className="text-lg text-gray-600">
+                You can stop or agree to continue. No personal identifiers are stored.
+              </p>
             </div>
-            <div className="text-3xl text-[#3a4b5e] mb-0">
-              You can stop or agree to continue. No personal identifiers are
-              stored.
-            </div>
-          </div>
-
-          {/* Right: Buttons */}
-          <div className="flex flex-col gap-4 ml-12">
-            <div className="flex flex-row gap-6">
-              <Button
-                className={`flex-1 flex items-center justify-center gap-2 text-4xl font-semibold px-10 py-8 rounded-lg transition-all duration-200 ${
-                  consent === true
-                    ? "bg-[#3a87d5] text-white hover:bg-blue-900"
-                    : "bg-[#3a87d5] text-white border-3 border-[#75a9d7] hover:bg-blue-800 shadow-xl shadow-[#3a87d5] hover:scale-105"
-                }`}
+            
+            {/* Right side: New animated consent buttons */}
+            <div className="flex gap-4 items-center">
+              <ConsentButton
+                value={true}
+                selected={consent === true}
                 onClick={() => setConsent(true)}
-              >
-                <i className="bi bi-hand-thumbs-up-fill text-3xl" />I Consent
-              </Button>
-
-              <Button
-                className={`flex-1 flex items-center justify-center gap-2 text-4xl font-semibold px-10 py-8 rounded-lg transition-all duration-200 ${
-                  consent === false
-                    ? "bg-gray-900 text-white"
-                    : "bg-white text-[#1a3557] border border-[#3a87d5] hover:bg-[#e0f2ff]"
-                }`}
+              />
+              <ConsentButton
+                value={false}
+                selected={consent === false}
                 onClick={() => setConsent(false)}
-              >
-                <i className="bi bi-hand-thumbs-down-fill text-3xl" />I Do Not
-                Consent
-              </Button>
+              />
             </div>
           </div>
         </div>
 
-        {/* Bottom buttons */}
-        <div className="flex flex-row justify-between items-center">
-          <Button
-            className="text-4xl bg-white text-[#3a87d5] border border-[#3a87d5] hover:bg-[#e0f2ff] px-10 py-8 rounded-lg font-semibold"
+        {/* Navigation */}
+        <div className="flex justify-between items-center">
+          <BackButton 
             onClick={handleBack}
+            size="md"
           >
-            ← Back
-          </Button>
-          <div className="flex-1" />
-          <Button
+            Back
+          </BackButton>
+
+          <NextButton 
             onClick={handleNext}
             disabled={consent === null || loading}
-            className="px-10 py-8 text-4xl flex items-center justify-center gap-2 bg-[#1a3557] text-white hover:bg-[#3a87d5] rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
           >
-            <span>{loading ? "Processing..." : "Begin Analysis"}</span>
-            {!loading && <i className="bi bi-arrow-right text-3xl" />}
-          </Button>
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                <span>Processing...</span>
+              </div>
+            ) : "Begin Analysis"}
+          </NextButton>
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

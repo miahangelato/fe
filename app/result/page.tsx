@@ -6,6 +6,7 @@ import { useConsent } from "../../contexts/ConsentContext";
 // import QRCodeComponent from "../../components/QRCodeComponent";
 import React from "react";
 // import CryptoJS from "crypto-js";
+import { ProgressHeader } from "@/components/ProgressHeader";
 import {
   Droplets,
   TrendingUp,
@@ -301,14 +302,23 @@ export default function ResultPage() {
   })();
 
   return (
-    <div
-      className="min-h-screen flex"
-      style={{
-        background:
-          "linear-gradient(120deg, #fff 40%, #78caff 100%), linear-gradient(to bottom, transparent 60%, #78caff 100%)",
-        backgroundBlendMode: "overlay",
-      }}
-    >
+    <div className="flex flex-col">
+      {/* Progress Header */}
+      <ProgressHeader
+        currentStep={4}
+        totalSteps={4}
+        title="Results & Recommendations"
+        subtitle="Your fingerprint analysis results and health insights"
+      />
+      
+      <div
+        className="min-h-screen flex"
+        style={{
+          background:
+            "linear-gradient(120deg, #fff 40%, #78caff 100%), linear-gradient(to bottom, transparent 60%, #78caff 100%)",
+          backgroundBlendMode: "overlay",
+        }}
+      >
       {/* SIDEBAR */}
       <aside className="w-[360px] shrink-0 h-screen bg-white rounded-sm p-6 shadow-xl border-4 border-slate-200 shadow-slate-300 overflow-y-auto sticky top-0">
         <div className="flex items-center justify-between mb-6">
@@ -705,6 +715,7 @@ export default function ResultPage() {
           <EndButton />
         </div>
       </main>
+      </div>
     </div>
   );
 }
